@@ -1,0 +1,8 @@
+{
+  "name": "find-best-shuffled-devgroups",
+  "version": "1.0.0",
+  "dependencies": {
+    "fisher-yates": "1.0.3",
+    "play-sound": "1.1.5"
+  }
+}
