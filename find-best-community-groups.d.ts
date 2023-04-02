@@ -16,11 +16,8 @@ declare type CommunityGroup = {
     techleadsCount: number
 }
 declare type CommunityDescriptor = {
-    shuffleCount: number,
     referenceYearForSeniority: number,
     xpWeight: number,
-    projectCountWeight: number,
-    maxDiffProjects: number,
     maxSameProjectPerGroup: number,
     malusPerSamePath: number,
     devs: Array<CommunityMember>,

@@ -15,7 +15,7 @@ try {
 }
 const INITIAL_MEMBERS_RESULT = bestResultContent;
 
-async function bestShuffleFor({devs, groups, shuffleCount, referenceYearForSeniority, xpWeight, projectCountWeight, maxDiffProjects, maxSameProjectPerGroup, malusPerSamePath}: CommunityDescriptor): Promise<Result> {
+async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight, maxSameProjectPerGroup, malusPerSamePath}: CommunityDescriptor): Promise<Result> {
     let bestResult: Result = {devs: [], score: {score: Infinity, groupsScores:[], duplicatedPathsMalus: 0, duplicatedPaths: [], xpStdDev: 0}};
 
     let lastIndex = 0, lastTS = Date.now(), idx = 0;
@@ -29,8 +29,8 @@ async function bestShuffleFor({devs, groups, shuffleCount, referenceYearForSenio
         if(!alreadyProcessedFootprints.has(footprint)) {
             alreadyProcessedFootprints.add(footprint);
 
-            if(shuffledDevsMatchesConstraint(assignedMembers, groups, maxDiffProjects, maxSameProjectPerGroup)) {
-                const score = scoreOf(assignedMembers, groups, referenceYearForSeniority, xpWeight, projectCountWeight, maxDiffProjects, malusPerSamePath);
+            if(shuffledDevsMatchesConstraint(assignedMembers, groups, maxSameProjectPerGroup)) {
+                const score = scoreOf(assignedMembers, groups, referenceYearForSeniority, xpWeight, malusPerSamePath);
                 const result: Result = { score, devs: assignedMembers.map(d => ({...d, group: groups.find(g => g.id === d.group).name })) };
                 if(bestResult.score.score > score.score) {
                     bestResult = result;
@@ -172,12 +172,13 @@ function* shuffle(members: CommunityMember[], groups: CommunityGroup[]){
     }
 }
 
-function scoreOf(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGroup[], referenceYearForSeniority: number, xpWeight: number, projectCountWeight: number, maxDiffProjects: number, malusPerSamePath: number): ResultDetailedScore {
+function scoreOf(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGroup[], referenceYearForSeniority: number, xpWeight: number, malusPerSamePath: number): ResultDetailedScore {
     const result = groups.reduce((result, group) => {
         // only devs are counting in the score (tech lead XP is not taken into account)
         const groupXPs = devs.filter(d => d.group === group.id && d.type === 'DEV').map(d => referenceYearForSeniority - d.proStart)
         const groupTotalXP = groupXPs.reduce((total, years) => total+years, 0);
         const groupAverageXP = Math.round(groupTotalXP*100 / groupXPs.length)/100;
+
         const groupMembers = devs.filter(d => d.group === group.id);
         groupMembers.forEach(m => {
             // Members having "empty" past group should be ignored
@@ -218,14 +219,14 @@ function scoreOf(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGr
     };
 }
 
-function shuffledDevsMatchesConstraint(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGroup[], maxDiffProjects: number, maxSameProjectPerGroup: number): boolean {
+function shuffledDevsMatchesConstraint(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGroup[], maxSameProjectPerGroup: number): boolean {
     const result = groups.reduce((result, group) => {
         const projects = devs.filter(d => d.group === group.id)
             .map((d, idx) => d.mainProject==='*'?'project '+idx:d.mainProject);
         const maxDuplicates: number = Math.max.apply(null, projects.map(p1 => projects.filter(p2 => p1 === p2).length))
-        const sameProjectsCounts = projects.length - new Set(projects).size;
-        return { total: result.total+sameProjectsCounts, maxDuplicates: Math.max(maxDuplicates, result.maxDuplicates) };
-    }, { total: 0, maxDuplicates: 0 });
+        // const sameProjectsCounts = projects.length - new Set(projects).size;
+        return { /* total: result.total+sameProjectsCounts, */ maxDuplicates: Math.max(maxDuplicates, result.maxDuplicates) };
+    }, { /* total: 0, */ maxDuplicates: 0 });
 
     /*
       const groupPathsStats = devs.reduce((stats, dev) => {
@@ -236,7 +237,7 @@ function shuffledDevsMatchesConstraint(devs: CommunityMemberWithAssignedGroupId[
       }, { groupPaths: new Map(), max: 0 })
       */
 
-    return result.total <= maxDiffProjects && result.maxDuplicates <= maxSameProjectPerGroup /* && groupPathsStats.max === 1 */;
+    return /* result.total <= maxDiffProjects && */ result.maxDuplicates <= maxSameProjectPerGroup /* && groupPathsStats.max === 1 */;
 }
 
 async function main() {
