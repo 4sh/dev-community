@@ -211,10 +211,10 @@ function scoreOf(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGr
     const duplicatedPathsMalus = duplicatedPaths.length * malusPerSamePath;
 
     return {
-        xpStdDev,
-        duplicatedPaths,
-        duplicatedPathsMalus,
         score: xpStdDev + duplicatedPathsMalus,
+        xpStdDev,
+        duplicatedPathsMalus,
+        duplicatedPaths,
         groupsScores: result.groupsScores
     };
 }
