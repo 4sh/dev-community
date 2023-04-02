@@ -19,6 +19,7 @@ declare type CommunityDescriptor = {
     referenceYearForSeniority: number,
     xpWeight: number,
     maxSameProjectPerGroup: number,
+    maxMembersPerGroupWithDuplicatedProject: number,
     malusPerSamePath: number,
     devs: Array<CommunityMember>,
     groups: Array<CommunityGroup>
