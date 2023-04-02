@@ -1,12 +1,13 @@
+/// <reference path="find-best-community-groups.d.ts" />
 
-const fs = require('node:fs');
-const data = require("./community-descriptor.json");
+import * as fs from 'node:fs'
+import fisherYatesShuffle from 'fisher-yates'
+import playerFactory from 'play-sound'
 
-const fisherYatesShuffle = require ('fisher-yates');
-const player = require('play-sound')({});
+const player = playerFactory({});
 
 const BEST_RESULT_FILE = './best-result.json'
-let bestResultContent;
+let bestResultContent: CommunityMemberWithAssignedGroupName[]|undefined;
 try {
     bestResultContent = require(BEST_RESULT_FILE).devs;
 }catch(e) {
@@ -14,11 +15,11 @@ try {
 }
 const INITIAL_MEMBERS_RESULT = bestResultContent;
 
-async function bestShuffleFor(devs, groups, shuffleCount, referenceYearForSeniority, xpWeight, projectCountWeight, maxDiffProjects, maxSameProjectPerGroup, malusPerSamePath) {
-    let bestResult = {devs: [], score: {score: Infinity}};
+async function bestShuffleFor({devs, groups, shuffleCount, referenceYearForSeniority, xpWeight, projectCountWeight, maxDiffProjects, maxSameProjectPerGroup, malusPerSamePath}: CommunityDescriptor): Promise<Result> {
+    let bestResult: Result = {devs: [], score: {score: Infinity, groupsScores:[], duplicatedPathsMalus: 0, duplicatedPaths: [], xpStdDev: 0}};
 
     let lastIndex = 0, lastTS = Date.now(), idx = 0;
-    const alreadyProcessedFootprints = new Set();
+    const alreadyProcessedFootprints = new Set<string>();
     for await (const { assignedMembers, footprint } of shuffle(devs, groups)) {
         if(INITIAL_MEMBERS_RESULT && idx===0) {
             assignedMembers.length = 0;
@@ -30,7 +31,7 @@ async function bestShuffleFor(devs, groups, shuffleCount, referenceYearForSenior
 
             if(shuffledDevsMatchesConstraint(assignedMembers, groups, maxDiffProjects, maxSameProjectPerGroup)) {
                 const score = scoreOf(assignedMembers, groups, referenceYearForSeniority, xpWeight, projectCountWeight, maxDiffProjects, malusPerSamePath);
-                const result = { score, devs: assignedMembers.map(d => ({...d, group: groups.find(g => g.id === d.group).name })) };
+                const result: Result = { score, devs: assignedMembers.map(d => ({...d, group: groups.find(g => g.id === d.group).name })) };
                 if(bestResult.score.score > score.score) {
                     bestResult = result;
                     console.log(`[${idx}] Found new matching result with score of ${bestResult.score.score} !`)
@@ -57,16 +58,16 @@ async function bestShuffleFor(devs, groups, shuffleCount, referenceYearForSenior
 }
 
 
-async function shuffleGroupsFor(withoutIgnoredDevs, groups, shuffleCount, referenceYearForSeniority, xpWeight, projectCountWeight, maxDiffProjects, maxSameProjectPerGroup, malusPerSamePath) {
-    const shuffledDevs = await bestShuffleFor(withoutIgnoredDevs, groups, shuffleCount, referenceYearForSeniority, xpWeight, projectCountWeight, maxDiffProjects, maxSameProjectPerGroup, malusPerSamePath);
-    if(!shuffledDevs) {
+async function shuffleGroupsFor(communityDescriptor: CommunityDescriptor) {
+    const result = await bestShuffleFor(communityDescriptor);
+    if(!result) {
         return ["Nothing found matching constraints !"];
     }
 
-    onResultFound(shuffledDevs);
+    onResultFound(result);
 }
 
-function onResultFound(result) {
+function onResultFound(result: Result) {
     fs.writeFileSync(BEST_RESULT_FILE, JSON.stringify(result, null, '  '));
 
     console.log(`Écart-type avg(XP) des groupes : ${result.score.xpStdDev}`)
@@ -93,13 +94,13 @@ function onResultFound(result) {
     player.play('mixkit-gaming-lock-2848.wav')
 }
 
-function stddev (array) {
+function stddev (array: number[]): number {
     const n = array.length;
     const mean = array.reduce((a, b) => a + b) / n;
     return Math.sqrt(array.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n);
 }
 
-function* shuffle(members, groups){
+function* shuffle(members: CommunityMember[], groups: CommunityGroup[]){
     const animators = members.filter(m => m.isAnimator);
     if(animators.length !== groups.length) {
         throw new Error(`Number of animators ${animators.length} is different than the groups' size (${groups.length})`)
@@ -113,8 +114,8 @@ function* shuffle(members, groups){
 
     while(true) {
         // cloning arrays
-        const shuffledDevIndexes = fisherYatesShuffle(devIndexes.slice(0)),
-              shuffledTechleadIndexes = fisherYatesShuffle(techleadIndexes.slice(0));
+        const shuffledDevIndexes: typeof devIndexes = fisherYatesShuffle(devIndexes.slice(0)),
+              shuffledTechleadIndexes: typeof techleadIndexes = fisherYatesShuffle(techleadIndexes.slice(0));
 
         const footprint = shuffledDevIndexes.concat(shuffledTechleadIndexes).join(",");
 
@@ -165,13 +166,13 @@ function* shuffle(members, groups){
             }
 
             return assignedMembers;
-        }, [])
+        }, [] as CommunityMemberWithAssignedGroupId[])
 
         yield { assignedMembers, footprint };
     }
 }
 
-function scoreOf(devs, groups, referenceYearForSeniority, xpWeight, projectCountWeight, maxDiffProjects, malusPerSamePath) {
+function scoreOf(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGroup[], referenceYearForSeniority: number, xpWeight: number, projectCountWeight: number, maxDiffProjects: number, malusPerSamePath: number): ResultDetailedScore {
     const result = groups.reduce((result, group) => {
         // only devs are counting in the score (tech lead XP is not taken into account)
         const groupXPs = devs.filter(d => d.group === group.id && d.type === 'DEV').map(d => referenceYearForSeniority - d.proStart)
@@ -202,21 +203,26 @@ function scoreOf(devs, groups, referenceYearForSeniority, xpWeight, projectCount
             alreadyEncounteredPaths: result.alreadyEncounteredPaths,
             samePaths: result.samePaths
         };
-    }, { score: 0.0, groupsScores: [], alreadyEncounteredPaths: new Map(), samePaths: [] });
+    }, { score: 0.0, groupsScores: [], alreadyEncounteredPaths: new Map<string, string[]>(), samePaths: [] } as { score: number, groupsScores: GroupScore[], alreadyEncounteredPaths: Map<string, string[]>, samePaths: DuplicatedPath[] });
 
-    result.xpStdDev = stddev(result.groupsScores.map(gs => gs.groupAverageXP * xpWeight));
-    result.duplicatedPaths = result.samePaths;
-    result.duplicatedPathsMalus = result.duplicatedPaths.length * malusPerSamePath;
-    result.score = result.xpStdDev + result.duplicatedPathsMalus;
+    const xpStdDev = stddev(result.groupsScores.map(gs => gs.groupAverageXP * xpWeight));
+    const duplicatedPaths = result.samePaths;
+    const duplicatedPathsMalus = duplicatedPaths.length * malusPerSamePath;
 
-    return result;
+    return {
+        xpStdDev,
+        duplicatedPaths,
+        duplicatedPathsMalus,
+        score: xpStdDev + duplicatedPathsMalus,
+        groupsScores: result.groupsScores
+    };
 }
 
-function shuffledDevsMatchesConstraint(devs, groups, maxDiffProjects, maxSameProjectPerGroup) {
+function shuffledDevsMatchesConstraint(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGroup[], maxDiffProjects: number, maxSameProjectPerGroup: number): boolean {
     const result = groups.reduce((result, group) => {
         const projects = devs.filter(d => d.group === group.id)
             .map((d, idx) => d.mainProject==='*'?'project '+idx:d.mainProject);
-        const maxDuplicates = Math.max.apply(null, projects.map(p1 => projects.filter(p2 => p1 === p2).length))
+        const maxDuplicates: number = Math.max.apply(null, projects.map(p1 => projects.filter(p2 => p1 === p2).length))
         const sameProjectsCounts = projects.length - new Set(projects).size;
         return { total: result.total+sameProjectsCounts, maxDuplicates: Math.max(maxDuplicates, result.maxDuplicates) };
     }, { total: 0, maxDuplicates: 0 });
@@ -234,8 +240,8 @@ function shuffledDevsMatchesConstraint(devs, groups, maxDiffProjects, maxSamePro
 }
 
 async function main() {
-    const data = require('./community-descriptor.json');
-    const results = await shuffleGroupsFor(data.devs, data.groups, 1000000000, 2023, 1.5, 1, 6, 2, 0.04);
+    const communityDescriptor: CommunityDescriptor = require('./community-descriptor.json');
+    const results = await shuffleGroupsFor(communityDescriptor);
     console.log(results);
 }
 
