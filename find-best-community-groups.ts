@@ -99,7 +99,8 @@ function onResultFound(result: Result) {
     console.log("devs: ")
     console.log(JSON.stringify(result.devs))
 
-    player.play('mixkit-gaming-lock-2848.wav')
+    // Trying to play the sound ... and if it fails, never mind !
+    try { player.play('mixkit-gaming-lock-2848.wav') }catch(e) {}
 }
 
 function stddev (array: number[]): number {
