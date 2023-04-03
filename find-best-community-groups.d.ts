@@ -39,7 +39,8 @@ declare type GroupScore = {
 
 declare type DuplicatedPath = {
     path: string,
-    email: string
+    firstName: string,
+    lastName: string
 }
 
 declare type ResultDetailedScore = {

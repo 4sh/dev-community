@@ -187,12 +187,12 @@ function scoreOf(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGr
                 if(result.alreadyEncounteredPaths.has(path)) {
                     const membersSharingSamePath = result.alreadyEncounteredPaths.get(path);
                     if(membersSharingSamePath.length === 1) {
-                        result.samePaths.push({ path, email: membersSharingSamePath[0] });
+                        result.samePaths.push({ path, firstName: membersSharingSamePath[0].firstName, lastName: membersSharingSamePath[0].lastName });
                     }
-                    result.samePaths.push({ path, email: m.email });
-                    membersSharingSamePath.push(m.email);
+                    result.samePaths.push({ path, firstName: m.firstName, lastName: m.lastName });
+                    membersSharingSamePath.push(m);
                 } else {
-                    result.alreadyEncounteredPaths.set(path, [m.email]);
+                    result.alreadyEncounteredPaths.set(path, [m]);
                 }
             }
         })
@@ -204,7 +204,7 @@ function scoreOf(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGr
             alreadyEncounteredPaths: result.alreadyEncounteredPaths,
             samePaths: result.samePaths
         };
-    }, { score: 0.0, groupsScores: [], alreadyEncounteredPaths: new Map<string, string[]>(), samePaths: [] } as { score: number, groupsScores: GroupScore[], alreadyEncounteredPaths: Map<string, string[]>, samePaths: DuplicatedPath[] });
+    }, { score: 0.0, groupsScores: [], alreadyEncounteredPaths: new Map<string, CommunityMemberWithAssignedGroupId[]>(), samePaths: [] } as { score: number, groupsScores: GroupScore[], alreadyEncounteredPaths: Map<string, CommunityMemberWithAssignedGroupId[]>, samePaths: DuplicatedPath[] });
 
     const xpStdDev = stddev(result.groupsScores.map(gs => gs.groupAverageXP * xpWeight));
     const duplicatedPaths = result.samePaths;
