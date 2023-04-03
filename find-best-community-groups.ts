@@ -13,14 +13,119 @@ function loadBestResultFile(): CommunityMemberWithAssignedGroupName[]|undefined 
     catch(e) { return undefined; }
 }
 
+type ShuffleResult = {footprint: string, assignedMembers: CommunityMemberWithAssignedGroupId[] };
+class GroupMemberShuffler {
+    private readonly animators: CommunityMember[];
+    private readonly devs: CommunityMember[];
+    private readonly techleads: CommunityMember[];
+
+    private readonly devIndexes: number[];
+    private readonly devHashes: number[];
+    private readonly techleadIndexes: number[];
+    private readonly techleadHashes: number[];
+
+    constructor(members: CommunityMember[], readonly groups: CommunityGroup[]) {
+        this.animators = members.filter(m => m.isAnimator);
+        if(this.animators.length !== groups.length) {
+            throw new Error(`Number of animators ${this.animators.length} is different than the groups' size (${groups.length})`)
+        }
+
+        this.devs = members.filter(m => !m.isAnimator && m.type === 'DEV');
+        this.techleads = members.filter(m => !m.isAnimator && m.type === 'TECHLEAD');
+
+        const typeIndexes = Array.from(new Set(members.map(m => m.type)))
+        const projectIndexes = Array.from(new Set(members.map(m => m.mainProject)))
+        const yearsIndexes = Array.from(new Set(members.map(m => m.proStart)))
+
+        const indexExtractor = (_, idx) => idx,
+            hashExtractor = (m: CommunityMember) => {
+                return yearsIndexes.indexOf(m.proStart) << 7 // Let's dedicate 2^(7-2)=32 slots for project indexes
+                    | projectIndexes.indexOf(m.mainProject) << 2 // Let's dedicate 2^(2-0) slots for type indexes
+                    | typeIndexes.indexOf(m.type);
+            };
+
+        this.devIndexes = this.devs.map(indexExtractor),
+        this.devHashes = this.devs.map(hashExtractor),
+        this.techleadIndexes = this.techleads.map(indexExtractor),
+        this.techleadHashes = this.techleads.map(hashExtractor);
+    }
+
+    public shuffle(): ShuffleResult {
+        // cloning arrays
+        const shuffledDevIndexes: typeof this.devIndexes = fisherYatesShuffle(this.devIndexes.slice(0)),
+              shuffledTechleadIndexes: typeof this.techleadIndexes = fisherYatesShuffle(this.techleadIndexes.slice(0));
+
+        const footprint = shuffledDevIndexes.map(idx => this.devHashes[idx])
+            .concat(shuffledTechleadIndexes.map(idx => this.techleadHashes[idx]))
+            .join(",");
+
+        const assignedMembers = this.groups.reduce((assignedMembers, group, groupIdx) => {
+            const animator = this.animators[groupIdx];
+            assignedMembers.push({
+                lastName: animator.lastName,
+                firstName: animator.firstName,
+                type: animator.type,
+                email: animator.email,
+                proStart: animator.proStart,
+                isAnimator: true,
+                mainProject: animator.mainProject,
+                latestGroups: animator.latestGroups,
+                group: groupIdx
+            })
+
+            for(let i=0; i<group.techleadsCount - (animator.type === 'TECHLEAD'?1:0); i++) {
+                const tcIndex = shuffledTechleadIndexes.shift();
+                const techlead = this.techleads[tcIndex];
+                assignedMembers.push({
+                    lastName: techlead.lastName,
+                    firstName: techlead.firstName,
+                    type: 'TECHLEAD',
+                    email: techlead.email,
+                    proStart: techlead.proStart,
+                    isAnimator: false,
+                    mainProject: techlead.mainProject,
+                    latestGroups: techlead.latestGroups,
+                    group: groupIdx
+                })
+            }
+
+            for(let i=0; i<group.devsCount - (animator.type === 'DEV'?1:0); i++) {
+                const devIndex = shuffledDevIndexes.shift();
+                const dev = this.devs[devIndex];
+                assignedMembers.push({
+                    lastName: dev.lastName,
+                    firstName: dev.firstName,
+                    type: 'DEV',
+                    email: dev.email,
+                    proStart: dev.proStart,
+                    isAnimator: false,
+                    mainProject: dev.mainProject,
+                    latestGroups: dev.latestGroups,
+                    group: groupIdx
+                })
+            }
+
+            return assignedMembers;
+        }, [] as CommunityMemberWithAssignedGroupId[])
+
+        return { assignedMembers, footprint };
+    }
+
+}
+
 async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight, maxSameProjectPerGroup, maxMembersPerGroupWithDuplicatedProject, malusPerSamePath}: CommunityDescriptor): Promise<Result> {
     let bestResult: Result = {devs: [], score: {score: Infinity, groupsScores:[], duplicatedPathsMalus: 0, duplicatedPaths: [], xpStdDev: 0}};
 
     const INITIAL_MEMBERS_RESULT = loadBestResultFile();
 
+    const shuffler = new GroupMemberShuffler(devs, groups);
+
     let lastIndex = 0, lastTS = Date.now(), idx = 0, attemptsMatchingConstraints = 0, lastAttemptsMatchingConstraints = 0;
+    let shuffResult: ShuffleResult;
     // const alreadyProcessedFootprints = new Set<string>();
-    for await (const { assignedMembers, footprint } of shuffle(devs, groups)) {
+    while(shuffResult = shuffler.shuffle()) {
+        const {assignedMembers, footprint} = shuffResult;
+
         if(INITIAL_MEMBERS_RESULT && idx===0) {
             assignedMembers.length = 0;
             Array.prototype.push.apply(assignedMembers, devs.map(d => {
@@ -31,7 +136,6 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
 
         // if(!alreadyProcessedFootprints.has(footprint)) {
         //     alreadyProcessedFootprints.add(footprint);
-
             if(shuffledDevsMatchesConstraint(assignedMembers, groups, maxSameProjectPerGroup, maxMembersPerGroupWithDuplicatedProject)) {
                 attemptsMatchingConstraints++;
 
@@ -59,10 +163,9 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
             console.log(`[${new Date(currentTS).toISOString()}] [${idx}] ${currentTS-lastTS}ms elapsed => ${attempsPerSecond} attempts/sec, ${attempsMatchingConstraintsPerSecond} matching attempts/sec`)
             lastIndex = idx; lastTS = currentTS; lastAttemptsMatchingConstraints = attemptsMatchingConstraints;
         }
-
     }
 
-    return bestResult;
+    return Promise.resolve(bestResult);
 }
 
 
@@ -107,93 +210,6 @@ function stddev (array: number[]): number {
     const n = array.length;
     const mean = array.reduce((a, b) => a + b) / n;
     return Math.sqrt(array.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n);
-}
-
-function* shuffle(members: CommunityMember[], groups: CommunityGroup[]){
-    const animators = members.filter(m => m.isAnimator);
-    if(animators.length !== groups.length) {
-        throw new Error(`Number of animators ${animators.length} is different than the groups' size (${groups.length})`)
-    }
-
-    const devs = members.filter(m => !m.isAnimator && m.type === 'DEV'),
-          techleads = members.filter(m => !m.isAnimator && m.type === 'TECHLEAD');
-
-    const typeIndexes = Array.from(new Set(members.map(m => m.type)))
-    const projectIndexes = Array.from(new Set(members.map(m => m.mainProject)))
-    const yearsIndexes = Array.from(new Set(members.map(m => m.proStart)))
-
-    const indexExtractor = (_, idx) => idx,
-          hashExtractor = (m: CommunityMember) => {
-              return yearsIndexes.indexOf(m.proStart) << 7 // Let's dedicate 2^(7-2)=32 slots for project indexes
-                  | projectIndexes.indexOf(m.mainProject) << 2 // Let's dedicate 2^(2-0) slots for type indexes
-                  | typeIndexes.indexOf(m.type);
-          };
-
-    const devIndexes = devs.map(indexExtractor),
-          devHashes = devs.map(hashExtractor),
-          techleadIndexes = techleads.map(indexExtractor),
-          techleadHashes = techleads.map(hashExtractor);
-
-    while(true) {
-        // cloning arrays
-        const shuffledDevIndexes: typeof devIndexes = fisherYatesShuffle(devIndexes.slice(0)),
-              shuffledTechleadIndexes: typeof techleadIndexes = fisherYatesShuffle(techleadIndexes.slice(0));
-
-        const footprint = shuffledDevIndexes.map(idx => devHashes[idx])
-            .concat(shuffledTechleadIndexes.map(idx => techleadHashes[idx]))
-            .join(",");
-
-        const assignedMembers = groups.reduce((assignedMembers, group, groupIdx) => {
-            const animator = animators[groupIdx];
-            assignedMembers.push({
-                lastName: animator.lastName,
-                firstName: animator.firstName,
-                type: animator.type,
-                email: animator.email,
-                proStart: animator.proStart,
-                isAnimator: true,
-                mainProject: animator.mainProject,
-                latestGroups: animator.latestGroups,
-                group: groupIdx
-            })
-
-            for(let i=0; i<group.techleadsCount - (animator.type === 'TECHLEAD'?1:0); i++) {
-                const tcIndex = shuffledTechleadIndexes.shift();
-                const techlead = techleads[tcIndex];
-                assignedMembers.push({
-                    lastName: techlead.lastName,
-                    firstName: techlead.firstName,
-                    type: 'TECHLEAD',
-                    email: techlead.email,
-                    proStart: techlead.proStart,
-                    isAnimator: false,
-                    mainProject: techlead.mainProject,
-                    latestGroups: techlead.latestGroups,
-                    group: groupIdx
-                })
-            }
-
-            for(let i=0; i<group.devsCount - (animator.type === 'DEV'?1:0); i++) {
-                const devIndex = shuffledDevIndexes.shift();
-                const dev = devs[devIndex];
-                assignedMembers.push({
-                    lastName: dev.lastName,
-                    firstName: dev.firstName,
-                    type: 'DEV',
-                    email: dev.email,
-                    proStart: dev.proStart,
-                    isAnimator: false,
-                    mainProject: dev.mainProject,
-                    latestGroups: dev.latestGroups,
-                    group: groupIdx
-                })
-            }
-
-            return assignedMembers;
-        }, [] as CommunityMemberWithAssignedGroupId[])
-
-        yield { assignedMembers, footprint };
-    }
 }
 
 function scoreOf(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGroup[], referenceYearForSeniority: number, xpWeight: number, malusPerSamePath: number): ResultDetailedScore {
