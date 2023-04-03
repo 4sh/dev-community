@@ -115,18 +115,33 @@ function* shuffle(members: CommunityMember[], groups: CommunityGroup[]){
         throw new Error(`Number of animators ${animators.length} is different than the groups' size (${groups.length})`)
     }
 
-    const devs = members.filter(m => !m.isAnimator && m.type === 'DEV');
-    const techleads = members.filter(m => !m.isAnimator && m.type === 'TECHLEAD');
+    const devs = members.filter(m => !m.isAnimator && m.type === 'DEV'),
+          techleads = members.filter(m => !m.isAnimator && m.type === 'TECHLEAD');
 
-    const devIndexes = devs.map((_, idx) => idx),
-        techleadIndexes = techleads.map((_, idx) => idx);
+    const typeIndexes = Array.from(new Set(members.map(m => m.type)))
+    const projectIndexes = Array.from(new Set(members.map(m => m.mainProject)))
+    const yearsIndexes = Array.from(new Set(members.map(m => m.proStart)))
+
+    const indexExtractor = (_, idx) => idx,
+          hashExtractor = (m: CommunityMember) => {
+              return yearsIndexes.indexOf(m.proStart) << 7 // Let's dedicate 2^(7-2)=32 slots for project indexes
+                  | projectIndexes.indexOf(m.mainProject) << 2 // Let's dedicate 2^(2-0) slots for type indexes
+                  | typeIndexes.indexOf(m.type);
+          };
+
+    const devIndexes = devs.map(indexExtractor),
+          devHashes = devs.map(hashExtractor),
+          techleadIndexes = techleads.map(indexExtractor),
+          techleadHashes = techleads.map(hashExtractor);
 
     while(true) {
         // cloning arrays
         const shuffledDevIndexes: typeof devIndexes = fisherYatesShuffle(devIndexes.slice(0)),
               shuffledTechleadIndexes: typeof techleadIndexes = fisherYatesShuffle(techleadIndexes.slice(0));
 
-        const footprint = shuffledDevIndexes.concat(shuffledTechleadIndexes).join(",");
+        const footprint = shuffledDevIndexes.map(idx => devHashes[idx])
+            .concat(shuffledTechleadIndexes.map(idx => techleadHashes[idx]))
+            .join(",");
 
         const assignedMembers = groups.reduce((assignedMembers, group, groupIdx) => {
             const animator = animators[groupIdx];
