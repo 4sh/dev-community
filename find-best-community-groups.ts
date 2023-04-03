@@ -42,7 +42,7 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
                     console.log(`[${idx}] Found new matching result with score of ${bestResult.score.score} !`)
                     onResultFound(bestResult);
                 } else {
-                    console.log(`[${idx}] Found new matching result, but not beating actual score...`)
+                    // console.log(`[${idx}] Found new matching result, but not beating actual score...`)
                 }
             }
         } else {
