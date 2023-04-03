@@ -190,7 +190,7 @@ function scoreOf(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGr
         const groupMembers = devs.filter(d => d.group === group.id);
         groupMembers.forEach(m => {
             // Members having "empty" past group should be ignored
-            if(!m.latestGroups.filter(lg => lg === '').length) {
+            if(m.latestGroups.findIndex(lg => lg === '') === -1) {
                 const path = m.latestGroups.concat([group.name]).join("|")
                 if(result.alreadyEncounteredPaths.has(path)) {
                     const membersSharingSamePath = result.alreadyEncounteredPaths.get(path);
