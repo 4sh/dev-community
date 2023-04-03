@@ -7,16 +7,16 @@ import playerFactory from 'play-sound'
 const player = playerFactory({});
 
 const BEST_RESULT_FILE = './best-result.json'
-let bestResultContent: CommunityMemberWithAssignedGroupName[]|undefined;
-try {
-    bestResultContent = require(BEST_RESULT_FILE).devs;
-}catch(e) {
-    bestResultContent = undefined;
+
+function loadBestResultFile(): CommunityMemberWithAssignedGroupName[]|undefined {
+    try { return require(BEST_RESULT_FILE).devs; }
+    catch(e) { return undefined; }
 }
-const INITIAL_MEMBERS_RESULT = bestResultContent;
 
 async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight, maxSameProjectPerGroup, maxMembersPerGroupWithDuplicatedProject, malusPerSamePath}: CommunityDescriptor): Promise<Result> {
     let bestResult: Result = {devs: [], score: {score: Infinity, groupsScores:[], duplicatedPathsMalus: 0, duplicatedPaths: [], xpStdDev: 0}};
+
+    const INITIAL_MEMBERS_RESULT = loadBestResultFile();
 
     let lastIndex = 0, lastTS = Date.now(), idx = 0, attemptsMatchingConstraints = 0, lastAttemptsMatchingConstraints = 0;
     // const alreadyProcessedFootprints = new Set<string>();
@@ -255,6 +255,4 @@ async function main() {
     console.log(results);
 }
 
-main().then(() => {
-    console.log('ended')
-})
+main()
