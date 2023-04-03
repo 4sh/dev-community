@@ -18,7 +18,7 @@ const INITIAL_MEMBERS_RESULT = bestResultContent;
 async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight, maxSameProjectPerGroup, maxMembersPerGroupWithDuplicatedProject, malusPerSamePath}: CommunityDescriptor): Promise<Result> {
     let bestResult: Result = {devs: [], score: {score: Infinity, groupsScores:[], duplicatedPathsMalus: 0, duplicatedPaths: [], xpStdDev: 0}};
 
-    let lastIndex = 0, lastTS = Date.now(), idx = 0;
+    let lastIndex = 0, lastTS = Date.now(), idx = 0, attemptsMatchingConstraints = 0, lastAttemptsMatchingConstraints = 0;
     const alreadyProcessedFootprints = new Set<string>();
     for await (const { assignedMembers, footprint } of shuffle(devs, groups)) {
         if(INITIAL_MEMBERS_RESULT && idx===0) {
@@ -30,6 +30,8 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
             alreadyProcessedFootprints.add(footprint);
 
             if(shuffledDevsMatchesConstraint(assignedMembers, groups, maxSameProjectPerGroup, maxMembersPerGroupWithDuplicatedProject)) {
+                attemptsMatchingConstraints++;
+
                 const score = scoreOf(assignedMembers, groups, referenceYearForSeniority, xpWeight, malusPerSamePath);
                 const result: Result = { score, devs: assignedMembers.map(d => ({...d, group: groups.find(g => g.id === d.group).name })) };
                 if(bestResult.score.score > score.score) {
@@ -48,8 +50,11 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
 
         if(idx % 1000000 === 0) {
             const currentTS = Date.now();
-            console.log(`[${new Date(currentTS).toISOString()}] ${currentTS-lastTS}ms elapsed => ${Math.round((idx-lastIndex)*1000/(currentTS-lastTS))} attemps/sec`)
-            lastIndex = idx; lastTS = currentTS;
+            const attempsPerSecond = Math.round((idx-lastIndex)*1000/(currentTS-lastTS));
+            const attempsMatchingConstraintsPerSecond = Math.round((attemptsMatchingConstraints-lastAttemptsMatchingConstraints)*1000/(currentTS-lastTS));
+
+            console.log(`[${new Date(currentTS).toISOString()}] [${idx}] ${currentTS-lastTS}ms elapsed => ${attempsPerSecond} attempts/sec, ${attempsMatchingConstraintsPerSecond} matching attempts/sec`)
+            lastIndex = idx; lastTS = currentTS; lastAttemptsMatchingConstraints = attemptsMatchingConstraints;
         }
 
     }
