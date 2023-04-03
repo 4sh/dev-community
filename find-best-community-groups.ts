@@ -19,7 +19,7 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
     let bestResult: Result = {devs: [], score: {score: Infinity, groupsScores:[], duplicatedPathsMalus: 0, duplicatedPaths: [], xpStdDev: 0}};
 
     let lastIndex = 0, lastTS = Date.now(), idx = 0, attemptsMatchingConstraints = 0, lastAttemptsMatchingConstraints = 0;
-    const alreadyProcessedFootprints = new Set<string>();
+    // const alreadyProcessedFootprints = new Set<string>();
     for await (const { assignedMembers, footprint } of shuffle(devs, groups)) {
         if(INITIAL_MEMBERS_RESULT && idx===0) {
             assignedMembers.length = 0;
@@ -29,8 +29,8 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
             }))
         }
 
-        if(!alreadyProcessedFootprints.has(footprint)) {
-            alreadyProcessedFootprints.add(footprint);
+        // if(!alreadyProcessedFootprints.has(footprint)) {
+        //     alreadyProcessedFootprints.add(footprint);
 
             if(shuffledDevsMatchesConstraint(assignedMembers, groups, maxSameProjectPerGroup, maxMembersPerGroupWithDuplicatedProject)) {
                 attemptsMatchingConstraints++;
@@ -45,9 +45,9 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
                     // console.log(`[${idx}] Found new matching result, but not beating actual score...`)
                 }
             }
-        } else {
-            console.log(`skipped (footprint already processed !)`)
-        }
+        // } else {
+        //     console.log(`skipped (footprint already processed !)`)
+        // }
 
         idx++;
 
