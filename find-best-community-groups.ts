@@ -23,7 +23,10 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
     for await (const { assignedMembers, footprint } of shuffle(devs, groups)) {
         if(INITIAL_MEMBERS_RESULT && idx===0) {
             assignedMembers.length = 0;
-            Array.prototype.push.apply(assignedMembers, INITIAL_MEMBERS_RESULT.map(m => ({...m, group: groups.find(g => g.name === m.group).id})))
+            Array.prototype.push.apply(assignedMembers, devs.map(d => {
+                const initialMember = INITIAL_MEMBERS_RESULT.find(m => m.firstName === d.firstName && m.lastName === d.lastName)
+                return ({...d, group: groups.find(g => g.name === initialMember.group).id});
+            }))
         }
 
         if(!alreadyProcessedFootprints.has(footprint)) {
