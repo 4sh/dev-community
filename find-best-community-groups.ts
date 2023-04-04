@@ -19,6 +19,7 @@ class GroupMemberShuffler {
     private readonly devs: CommunityMember[];
     private readonly techleads: CommunityMember[];
 
+    private readonly animatorHashes: number[];
     private readonly devIndexes: number[];
     private readonly devHashes: number[];
     private readonly techleadIndexes: number[];
@@ -44,24 +45,24 @@ class GroupMemberShuffler {
                     | typeIndexes.indexOf(m.type);
             };
 
+        this.animatorHashes = this.animators.map(hashExtractor);
         this.devIndexes = this.devs.map(indexExtractor),
         this.devHashes = this.devs.map(hashExtractor),
         this.techleadIndexes = this.techleads.map(indexExtractor),
         this.techleadHashes = this.techleads.map(hashExtractor);
     }
 
+    // BEWARE: this method needs to be as fast as possible (as this is going to be called *a lot*)
     public shuffle(): ShuffleResult {
         // cloning arrays
         const shuffledDevIndexes: typeof this.devIndexes = fisherYatesShuffle(this.devIndexes.slice(0)),
               shuffledTechleadIndexes: typeof this.techleadIndexes = fisherYatesShuffle(this.techleadIndexes.slice(0));
 
-        const footprint = shuffledDevIndexes.map(idx => this.devHashes[idx])
-            .concat(shuffledTechleadIndexes.map(idx => this.techleadHashes[idx]))
-            .join(",");
+        const { assignedMembers, footprintChunks } = this.groups.reduce((result, group, groupIdx) => {
+            const groupFootprintChunks = [];
 
-        const assignedMembers = this.groups.reduce((assignedMembers, group, groupIdx) => {
             const animator = this.animators[groupIdx];
-            assignedMembers.push({
+            result.assignedMembers.push({
                 lastName: animator.lastName,
                 firstName: animator.firstName,
                 type: animator.type,
@@ -72,11 +73,12 @@ class GroupMemberShuffler {
                 latestGroups: animator.latestGroups,
                 group: groupIdx
             })
+            groupFootprintChunks.push(this.animatorHashes[groupIdx])
 
             for(let i=0; i<group.techleadsCount - (animator.type === 'TECHLEAD'?1:0); i++) {
                 const tcIndex = shuffledTechleadIndexes.shift();
                 const techlead = this.techleads[tcIndex];
-                assignedMembers.push({
+                result.assignedMembers.push({
                     lastName: techlead.lastName,
                     firstName: techlead.firstName,
                     type: 'TECHLEAD',
@@ -87,12 +89,13 @@ class GroupMemberShuffler {
                     latestGroups: techlead.latestGroups,
                     group: groupIdx
                 })
+                groupFootprintChunks.push(this.techleadHashes[tcIndex])
             }
 
             for(let i=0; i<group.devsCount - (animator.type === 'DEV'?1:0); i++) {
                 const devIndex = shuffledDevIndexes.shift();
                 const dev = this.devs[devIndex];
-                assignedMembers.push({
+                result.assignedMembers.push({
                     lastName: dev.lastName,
                     firstName: dev.firstName,
                     type: 'DEV',
@@ -103,12 +106,17 @@ class GroupMemberShuffler {
                     latestGroups: dev.latestGroups,
                     group: groupIdx
                 })
+                groupFootprintChunks.push(this.devHashes[devIndex])
             }
 
-            return assignedMembers;
-        }, [] as CommunityMemberWithAssignedGroupId[])
+            // Important part, here, is the sort() at group level, considering that permutations (within the group)
+            // should lead to the same footprint
+            Array.prototype.push.apply(result.footprintChunks, groupFootprintChunks.sort());
 
-        return { assignedMembers, footprint };
+            return result;
+        }, { assignedMembers: [], footprintChunks: [] } as { assignedMembers: CommunityMemberWithAssignedGroupId[], footprintChunks: number[] })
+
+        return { assignedMembers, footprint: footprintChunks.join(',') };
     }
 
 }
