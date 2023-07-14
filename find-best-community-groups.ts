@@ -25,6 +25,9 @@ class GroupMemberShuffler {
     private readonly techleadIndexes: number[];
     private readonly techleadHashes: number[];
 
+    private readonly perProjectDevs = new Map<string, CommunityMember[]>();
+    private readonly perProjectTechleads = new Map<string, CommunityMember[]>();
+
     constructor(members: CommunityMember[], readonly groups: CommunityGroup[]) {
         this.animators = members.filter(m => m.isAnimator);
         if(this.animators.length !== groups.length) {
@@ -46,19 +49,29 @@ class GroupMemberShuffler {
             };
 
         this.animatorHashes = this.animators.map(hashExtractor);
-        this.devIndexes = this.devs.map(indexExtractor),
-        this.devHashes = this.devs.map(hashExtractor),
-        this.techleadIndexes = this.techleads.map(indexExtractor),
+        this.devIndexes = this.devs.map(indexExtractor);
+        this.devHashes = this.devs.map(hashExtractor);
+        this.techleadIndexes = this.techleads.map(indexExtractor);
         this.techleadHashes = this.techleads.map(hashExtractor);
+
+        projectIndexes.forEach(project => {
+            this.perProjectDevs.set(project, members.filter(m => m.type === 'DEV'))
+            this.perProjectTechleads.set(project, members.filter(m => m.type === 'TECHLEAD'))
+        })
     }
 
     // BEWARE: this method needs to be as fast as possible (as this is going to be called *a lot*)
     public shuffle(): ShuffleResult {
+        // cloning maps (and underlying arrays)
+        const perProjectDevs = new Map(Array.from(this.perProjectDevs.entries(), ([key, value]) => [key, Array.from(value)]))
+        const perProjectTechleads = new Map(Array.from(this.perProjectTechleads.entries(), ([key, value]) => [key, Array.from(value)]))
+
         // cloning arrays
         const shuffledDevIndexes: typeof this.devIndexes = fisherYatesShuffle(this.devIndexes.slice(0)),
               shuffledTechleadIndexes: typeof this.techleadIndexes = fisherYatesShuffle(this.techleadIndexes.slice(0));
 
         const { assignedMembers, footprintChunks } = this.groups.reduce((result, group, groupIdx) => {
+            const groupPerProjectMembers = {};
             const groupFootprintChunks = [];
 
             const animator = this.animators[groupIdx];
@@ -74,6 +87,10 @@ class GroupMemberShuffler {
                 group: groupIdx
             })
             groupFootprintChunks.push(this.animatorHashes[groupIdx])
+
+            const animatorProjectMembers = (animator.type==='DEV'?perProjectDevs:perProjectTechleads).get(animator.mainProject)
+            animatorProjectMembers.splice(animatorProjectMembers.findIndex(m => m.lastName === animator.lastName && m.firstName === animator.firstName), 1);
+            groupPerProjectMembers[animator.mainProject] = [ animator ];
 
             for(let i=0; i<group.techleadsCount - (animator.type === 'TECHLEAD'?1:0); i++) {
                 const tcIndex = shuffledTechleadIndexes.shift();
@@ -118,7 +135,6 @@ class GroupMemberShuffler {
 
         return { assignedMembers, footprint: footprintChunks.join(',') };
     }
-
 }
 
 async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight, maxSameProjectPerGroup, maxMembersPerGroupWithDuplicatedProject, malusPerSamePath}: CommunityDescriptor): Promise<Result> {
