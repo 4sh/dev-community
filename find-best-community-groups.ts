@@ -142,6 +142,16 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
 
     const INITIAL_MEMBERS_RESULT = loadBestResultFile();
 
+    if(INITIAL_MEMBERS_RESULT) {
+        const devIdentity = (m: CommunityMember) =>
+            `${m.type}_${m.email}_${m.mainProject}_${m.isAnimator}_${m.proStart}`
+
+        if(INITIAL_MEMBERS_RESULT.map(devIdentity).join(",") !== devs.map(devIdentity).join(",")) {
+            console.error(`It seems like there is a remaining ${BEST_RESULT_FILE} file (not matching actual members descriptor): shouldn't you delete it ?`)
+            return;
+        }
+    }
+
     const shuffler = new GroupMemberShuffler(devs, groups);
 
     let lastIndex = 0, lastTS = Date.now(), idx = 0, attemptsMatchingConstraints = 0, lastAttemptsMatchingConstraints = 0;
