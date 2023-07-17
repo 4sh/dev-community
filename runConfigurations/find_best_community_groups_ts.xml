@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="find-best-community-groups.ts" type="NodeJSConfigurationType" node-parameters="--loader ts-node/esm/transpile-only" path-to-js-file="find-best-community-groups.ts" working-dir="$PROJECT_DIR$/">
+    <EXTENSION ID="com.jetbrains.nodejs.run.NodeJSProfilingRunConfigurationExtension">
+      <profiling log-folder="$PROJECT_DIR" />
+    </EXTENSION>
+    <method v="2" />
+  </configuration>
+</component>
