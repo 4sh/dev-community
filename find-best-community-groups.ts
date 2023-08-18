@@ -146,8 +146,13 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
         const devIdentity = (m: CommunityMember) =>
             `${m.type}_${m.email}_${m.mainProject}_${m.isAnimator}_${m.proStart}`
 
-        if(INITIAL_MEMBERS_RESULT.map(devIdentity).join(",") !== devs.map(devIdentity).join(",")) {
+        let initialHash = INITIAL_MEMBERS_RESULT.map(devIdentity);
+        let actualHash = devs.map(devIdentity);
+        if(initialHash.join(",") !== actualHash.join(",")) {
             console.error(`It seems like there is a remaining ${BEST_RESULT_FILE} file (not matching actual members descriptor): shouldn't you delete it ?`)
+            console.info(``)
+            console.info(`Actual members descriptor: ${JSON.stringify(actualHash)}`)
+            console.info(`Expected members descriptor: ${JSON.stringify(initialHash)}`)
             return;
         }
     }
@@ -178,7 +183,7 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
                 if(bestResult.score.score > score.score) {
                     bestResult = result;
                     console.log(`[${idx}] Found new matching result with score of ${bestResult.score.score} !`)
-                    onResultFound(bestResult);
+                    onResultFound(bestResult, referenceYearForSeniority);
                 } else {
                     // console.log(`[${idx}] Found new matching result, but not beating actual score...`)
                 }
@@ -209,22 +214,28 @@ async function shuffleGroupsFor(communityDescriptor: CommunityDescriptor) {
         return ["Nothing found matching constraints !"];
     }
 
-    onResultFound(result);
+    onResultFound(result, communityDescriptor.referenceYearForSeniority);
 }
 
-function onResultFound(result: Result) {
+function onResultFound(result: Result, referenceYearForSeniority: number) {
     fs.writeFileSync(BEST_RESULT_FILE, JSON.stringify(result, null, '  '));
 
-    console.log(`Écart-type avg(XP) des groupes : ${result.score.xpStdDev}`)
-    console.log(`Malus duplicated paths : ${result.score.duplicatedPathsMalus}`)
-    console.log('')
-    console.log(`Detailed duplicated paths : ${JSON.stringify(result.score.duplicatedPaths)}`)
-    console.log('')
-
+    console.log(`Group assignments:`)
     result.score.groupsScores.forEach((groupScore, idx) => {
-        console.log(`${groupScore.name} XP: tot=${groupScore.groupTotalXP}, avg=${groupScore.groupAverageXP}`)
+        const groupMembers = result.devs.filter(member => member.group === groupScore.name)
+        console.log(`[${groupScore.name}] - avg_xp(dev)=${groupScore.groupAverageXP}, tot_xp(dev)=${groupScore.groupTotalXP}, count(dev)=${groupMembers.filter(m => m.type==='DEV').length}, count(tl)=${groupMembers.filter(m => m.type==='TECHLEAD').length}`)
+        console.log(groupMembers
+            .map(member => `${member.isAnimator?'*':''}${member.firstName} ${member.lastName}${member.isAnimator?'*':''} (XP=${xpOf(member, referenceYearForSeniority)}, ${member.mainProject})`)
+            .join(", "))
+        console.log(``);
     })
 
+    console.log(`Global score: ${result.score.score}`)
+    console.log(`Standard deviation on groups' avg_xp(dev) : ${result.score.xpStdDev}`)
+    console.log(`Duplicated paths malus : ${result.score.duplicatedPathsMalus}`)
+    if(result.score.duplicatedPaths.length) {
+        console.log(`Detailed duplicated paths : ${JSON.stringify(result.score.duplicatedPaths)}`)
+    }
     console.log('')
 
     result.score.groupsScores.forEach((groupScore, idx) => {
@@ -233,7 +244,7 @@ function onResultFound(result: Result) {
 
     console.log('')
 
-    console.log("devs: ")
+    console.log("members (to import in google spreadsheet, through Actions > Import fill-groups JSON menu): ")
     console.log(JSON.stringify(result.devs))
 
     // Trying to play the sound ... and if it fails, never mind !
@@ -246,10 +257,14 @@ function stddev (array: number[]): number {
     return Math.sqrt(array.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n);
 }
 
+function xpOf(member: CommunityMember, referenceYearForSeniority: number) {
+    return referenceYearForSeniority - member.proStart;
+}
+
 function scoreOf(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGroup[], referenceYearForSeniority: number, xpWeight: number, malusPerSamePath: number): ResultDetailedScore {
     const result = groups.reduce((result, group) => {
         // only devs are counting in the score (tech lead XP is not taken into account)
-        const groupXPs = devs.filter(d => d.group === group.id && d.type === 'DEV').map(d => referenceYearForSeniority - d.proStart)
+        const groupXPs = devs.filter(d => d.group === group.id && d.type === 'DEV').map(d => xpOf(d, referenceYearForSeniority))
         const groupTotalXP = groupXPs.reduce((total, years) => total+years, 0);
         const groupAverageXP = Math.round(groupTotalXP*100 / groupXPs.length)/100;
 
