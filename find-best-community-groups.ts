@@ -146,8 +146,8 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
         const devIdentity = (m: CommunityMember) =>
             `${m.type}_${m.email}_${m.mainProject}_${m.isAnimator}_${m.proStart}`
 
-        let initialHash = INITIAL_MEMBERS_RESULT.map(devIdentity);
-        let actualHash = devs.map(devIdentity);
+        let initialHash = INITIAL_MEMBERS_RESULT.map(devIdentity).sort();
+        let actualHash = devs.map(devIdentity).sort();
         if(initialHash.join(",") !== actualHash.join(",")) {
             console.error(`It seems like there is a remaining ${BEST_RESULT_FILE} file (not matching actual members descriptor): shouldn't you delete it ?`)
             console.info(``)
