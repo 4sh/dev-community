@@ -84,7 +84,7 @@ class GroupMemberShuffler {
                 isAnimator: true,
                 mainProject: animator.mainProject,
                 latestGroups: animator.latestGroups,
-                group: groupIdx
+                group: group.id
             })
             groupFootprintChunks.push(this.animatorHashes[groupIdx])
 
@@ -104,7 +104,7 @@ class GroupMemberShuffler {
                     isAnimator: false,
                     mainProject: techlead.mainProject,
                     latestGroups: techlead.latestGroups,
-                    group: groupIdx
+                    group: group.id
                 })
                 groupFootprintChunks.push(this.techleadHashes[tcIndex])
             }
@@ -121,7 +121,7 @@ class GroupMemberShuffler {
                     isAnimator: false,
                     mainProject: dev.mainProject,
                     latestGroups: dev.latestGroups,
-                    group: groupIdx
+                    group: group.id
                 })
                 groupFootprintChunks.push(this.devHashes[devIndex])
             }
