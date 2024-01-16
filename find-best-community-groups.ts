@@ -310,24 +310,30 @@ function scoreOf(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGr
 }
 
 function shuffledDevsMatchesConstraint(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGroup[], maxSameProjectPerGroup: number, maxMembersPerGroupWithDuplicatedProject: number): boolean {
-    const result = groups.reduce((result, group) => {
-        const projects = devs.filter(d => d.group === group.id)
-            .map((d, idx) => d.mainProject==='*'?'project '+idx:d.mainProject);
+    for(const group of groups) {
+      const devsInGroup = devs.filter(d => d.group === group.id);
+      const projects = devsInGroup
+        .map((d, idx) => d.mainProject==='*'?'project '+idx:d.mainProject);
 
-        const projectCounts = projects.reduce((projectCounts, project) => {
-            projectCounts.set(project, (projectCounts.get(project) || 0)+1);
-            return projectCounts;
-        }, new Map<string, number>());
+      const projectCounts = projects.reduce((projectCounts, project) => {
+        projectCounts.set(project, (projectCounts.get(project) || 0)+1);
+        return projectCounts;
+      }, new Map<string, number>());
 
-        const membersHavingSameProjectCount = projects.length - projectCounts.size;
-        const maxDuplicates: number = Math.max.apply(null, Array.from(projectCounts.values()))
-        return {
-            membersHavingSameProjectMaxPerGroupCount: Math.max(result.membersHavingSameProjectMaxPerGroupCount, membersHavingSameProjectCount),
-            maxDuplicates: Math.max(maxDuplicates, result.maxDuplicates)
-        };
-    }, { membersHavingSameProjectMaxPerGroupCount: 0, maxDuplicates: 0 });
+      // const membersHavingSameProjectCount = devsInGroup.length - projectCounts.size;
+      const maxDuplicates: number = Math.max.apply(null, Array.from(projectCounts.values()))
 
-    return result.membersHavingSameProjectMaxPerGroupCount <= maxMembersPerGroupWithDuplicatedProject && result.maxDuplicates <= maxSameProjectPerGroup;
+      if(maxDuplicates > maxSameProjectPerGroup) {
+        // console.warn(`Group ${group.name}: Max project duplicates (${maxSameProjectPerGroup}) overtaken (${maxDuplicates})`)
+        return false;
+      }
+      if(devsInGroup.length - projectCounts.size > maxMembersPerGroupWithDuplicatedProject) {
+        // console.warn(`Group ${group.name}: Max member with duplicated projects (${maxMembersPerGroupWithDuplicatedProject}) overtaken (${devsInGroup.length - projectCounts.size})`)
+        return false;
+      }
+    }
+
+    return true;
 }
 
 async function main() {

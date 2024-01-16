@@ -18,7 +18,12 @@ declare type CommunityGroup = {
 declare type CommunityDescriptor = {
     referenceYearForSeniority: number,
     xpWeight: number,
+    // If set to 3, it means that within the group, we won't be able
+    // to have more than 3 members belonging to the same project
     maxSameProjectPerGroup: number,
+    // If set to 2, it means that if we have 7 members in the group,
+    // those members will have to be distributed across minimum 7-2=5
+    // different groups
     maxMembersPerGroupWithDuplicatedProject: number,
     malusPerSamePath: number,
     devs: Array<CommunityMember>,
