@@ -6,37 +6,31 @@
   "malusPerSamePath": 0.1,
   "groups": [
     {
-      "id": 0,
       "name": "Champignon",
       "devsCount": 7,
       "techleadsCount": 2
     },
     {
-      "id": 1,
       "name": "Carapace",
       "devsCount": 7,
       "techleadsCount": 2
     },
     {
-      "id": 2,
       "name": "Fleur",
       "devsCount": 7,
       "techleadsCount": 2
     },
     {
-      "id": 3,
       "name": "Banane",
       "devsCount": 7,
       "techleadsCount": 2
     },
     {
-      "id": 4,
       "name": "Étoile",
       "devsCount": 7,
       "techleadsCount": 1
     },
     {
-      "id": 5,
       "name": "Feuille",
       "devsCount": 8,
       "techleadsCount": 1

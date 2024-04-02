@@ -13,7 +13,7 @@ function loadBestResultFile(): CommunityMemberWithAssignedGroupName[]|undefined 
     catch(e) { return undefined; }
 }
 
-type ShuffleResult = {footprint: string, assignedMembers: CommunityMemberWithAssignedGroupId[] };
+type ShuffleResult = {footprint: string, assignedMembers: CommunityMemberWithAssignedGroupName[] };
 class GroupMemberShuffler {
     private readonly animators: CommunityMember[];
     private readonly devs: CommunityMember[];
@@ -84,7 +84,7 @@ class GroupMemberShuffler {
                 isAnimator: true,
                 mainProject: animator.mainProject,
                 latestGroups: animator.latestGroups,
-                group: group.id
+                group: group.name
             })
             groupFootprintChunks.push(this.animatorHashes[groupIdx])
 
@@ -104,7 +104,7 @@ class GroupMemberShuffler {
                     isAnimator: false,
                     mainProject: techlead.mainProject,
                     latestGroups: techlead.latestGroups,
-                    group: group.id
+                    group: group.name
                 })
                 groupFootprintChunks.push(this.techleadHashes[tcIndex])
             }
@@ -121,7 +121,7 @@ class GroupMemberShuffler {
                     isAnimator: false,
                     mainProject: dev.mainProject,
                     latestGroups: dev.latestGroups,
-                    group: group.id
+                    group: group.name
                 })
                 groupFootprintChunks.push(this.devHashes[devIndex])
             }
@@ -131,7 +131,7 @@ class GroupMemberShuffler {
             Array.prototype.push.apply(result.footprintChunks, groupFootprintChunks.sort());
 
             return result;
-        }, { assignedMembers: [], footprintChunks: [] } as { assignedMembers: CommunityMemberWithAssignedGroupId[], footprintChunks: number[] })
+        }, { assignedMembers: [], footprintChunks: [] } as { assignedMembers: CommunityMemberWithAssignedGroupName[], footprintChunks: number[] })
 
         return { assignedMembers, footprint: footprintChunks.join(',') };
     }
@@ -169,7 +169,7 @@ async function bestShuffleFor({groups, referenceYearForSeniority, xpWeight, maxS
             assignedMembers.length = 0;
             Array.prototype.push.apply(assignedMembers, members.map(m => {
                 const initialMember = INITIAL_MEMBERS_RESULT.find(m => m.firstName === m.firstName && m.lastName === m.lastName)
-                return ({...m, group: groups.find(g => g.name === initialMember.group).id});
+                return ({...m, group: initialMember.group });
             }))
         }
 
@@ -179,7 +179,7 @@ async function bestShuffleFor({groups, referenceYearForSeniority, xpWeight, maxS
                 attemptsMatchingConstraints++;
 
                 const score = scoreOf(assignedMembers, groups, referenceYearForSeniority, xpWeight, malusPerSamePath);
-                const result: Result = { score, devs: assignedMembers.map(d => ({...d, group: groups.find(g => g.id === d.group).name })) };
+                const result: Result = { score, devs: assignedMembers };
                 if(bestResult.score.score > score.score) {
                     bestResult = result;
                     console.log(`[${idx}] Found new matching result with score of ${bestResult.score.score} !`)
@@ -261,14 +261,14 @@ function xpOf(member: CommunityMember, referenceYearForSeniority: number) {
     return referenceYearForSeniority - member.proStart;
 }
 
-function scoreOf(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGroup[], referenceYearForSeniority: number, xpWeight: number, malusPerSamePath: number): ResultDetailedScore {
+function scoreOf(devs: CommunityMemberWithAssignedGroupName[], groups: CommunityGroup[], referenceYearForSeniority: number, xpWeight: number, malusPerSamePath: number): ResultDetailedScore {
     const result = groups.reduce((result, group) => {
         // only devs are counting in the score (tech lead XP is not taken into account)
-        const groupXPs = devs.filter(d => d.group === group.id && d.type === 'DEV').map(d => xpOf(d, referenceYearForSeniority))
+        const groupXPs = devs.filter(d => d.group === group.name && d.type === 'DEV').map(d => xpOf(d, referenceYearForSeniority))
         const groupTotalXP = groupXPs.reduce((total, years) => total+years, 0);
         const groupAverageXP = Math.round(groupTotalXP*100 / groupXPs.length)/100;
 
-        const groupMembers = devs.filter(d => d.group === group.id);
+        const groupMembers = devs.filter(d => d.group === group.name);
         groupMembers.forEach(m => {
             // Members having "empty" past group should be ignored
             const newConsecutiveGroups = m.latestGroups.slice(1).concat([group.name])
@@ -294,7 +294,7 @@ function scoreOf(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGr
             alreadyEncounteredPaths: result.alreadyEncounteredPaths,
             samePaths: result.samePaths
         };
-    }, { score: 0.0, groupsScores: [], alreadyEncounteredPaths: new Map<string, CommunityMemberWithAssignedGroupId[]>(), samePaths: [] } as { score: number, groupsScores: GroupScore[], alreadyEncounteredPaths: Map<string, CommunityMemberWithAssignedGroupId[]>, samePaths: DuplicatedPath[] });
+    }, { score: 0.0, groupsScores: [], alreadyEncounteredPaths: new Map<string, CommunityMemberWithAssignedGroupName[]>(), samePaths: [] } as { score: number, groupsScores: GroupScore[], alreadyEncounteredPaths: Map<string, CommunityMemberWithAssignedGroupName[]>, samePaths: DuplicatedPath[] });
 
     const xpStdDev = stddev(result.groupsScores.map(gs => gs.groupAverageXP * xpWeight));
     const duplicatedPaths = result.samePaths;
@@ -309,9 +309,9 @@ function scoreOf(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGr
     };
 }
 
-function shuffledDevsMatchesConstraint(devs: CommunityMemberWithAssignedGroupId[], groups: CommunityGroup[], maxSameProjectPerGroup: number, maxMembersPerGroupWithDuplicatedProject: number): boolean {
+function shuffledDevsMatchesConstraint(devs: CommunityMemberWithAssignedGroupName[], groups: CommunityGroup[], maxSameProjectPerGroup: number, maxMembersPerGroupWithDuplicatedProject: number): boolean {
     for(const group of groups) {
-      const devsInGroup = devs.filter(d => d.group === group.id);
+      const devsInGroup = devs.filter(d => d.group === group.name);
       const projects = devsInGroup
         .map((d, idx) => d.mainProject==='*'?'project '+idx:d.mainProject);
 

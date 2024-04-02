@@ -10,7 +10,6 @@ declare type CommunityMember = {
     latestGroups: string[]
 }
 declare type CommunityGroup = {
-    id: number,
     name: string,
     devsCount: number,
     techleadsCount: number
@@ -29,7 +28,6 @@ declare type CommunityDescriptor = {
     groups: Array<CommunityGroup>
 }
 
-declare type CommunityMemberWithAssignedGroupId = CommunityMember & {group: number};
 declare type CommunityMemberWithAssignedGroupName = CommunityMember & {group: string};
 
 declare type GroupScore = {
