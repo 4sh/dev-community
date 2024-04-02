@@ -3,7 +3,7 @@ declare type CommunityMember = {
     lastName: string,
     firstName: string,
     type: string,
-    email: string,
+    trigram: string,
     proStart: number,
     isAnimator: boolean,
     mainProject: string,

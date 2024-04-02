@@ -79,7 +79,7 @@ class GroupMemberShuffler {
                 lastName: animator.lastName,
                 firstName: animator.firstName,
                 type: animator.type,
-                email: animator.email,
+                trigram: animator.trigram,
                 proStart: animator.proStart,
                 isAnimator: true,
                 mainProject: animator.mainProject,
@@ -99,7 +99,7 @@ class GroupMemberShuffler {
                     lastName: techlead.lastName,
                     firstName: techlead.firstName,
                     type: 'TECHLEAD',
-                    email: techlead.email,
+                    trigram: techlead.trigram,
                     proStart: techlead.proStart,
                     isAnimator: false,
                     mainProject: techlead.mainProject,
@@ -116,7 +116,7 @@ class GroupMemberShuffler {
                     lastName: dev.lastName,
                     firstName: dev.firstName,
                     type: 'DEV',
-                    email: dev.email,
+                    trigram: dev.trigram,
                     proStart: dev.proStart,
                     isAnimator: false,
                     mainProject: dev.mainProject,
@@ -144,7 +144,7 @@ async function bestShuffleFor({groups, referenceYearForSeniority, xpWeight, maxS
 
     if(INITIAL_MEMBERS_RESULT) {
         const devIdentity = (m: CommunityMember) =>
-            `${m.type}_${m.email}_${m.mainProject}_${m.isAnimator}_${m.proStart}`
+            `${m.type}_${m.trigram}_${m.mainProject}_${m.isAnimator}_${m.proStart}`
 
         let initialHash = INITIAL_MEMBERS_RESULT.map(devIdentity).sort();
         let actualHash = members.map(devIdentity).sort();
