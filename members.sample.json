@@ -1,0 +1,717 @@
+[
+  {
+    "lastName": "Adam",
+    "firstName": "Warlock",
+    "type": "TECHLEAD",
+    "trigram": "adam.warlock@4sh.fr",
+    "proStart": 2014,
+    "isAnimator": true,
+    "mainProject": "Project 7",
+    "latestGroups": [
+      "Champignon",
+      "Étoile"
+    ]
+  },
+  {
+    "lastName": "Alpha",
+    "firstName": "Flight",
+    "type": "TECHLEAD",
+    "trigram": "alpha.flight@4sh.fr",
+    "proStart": 2021,
+    "isAnimator": false,
+    "mainProject": "Project 2",
+    "latestGroups": [
+      "Fleur",
+      "Champignon"
+    ]
+  },
+  {
+    "lastName": "Ancient",
+    "firstName": "One",
+    "type": "TECHLEAD",
+    "trigram": "ancient.one@4sh.fr",
+    "proStart": 2012,
+    "isAnimator": false,
+    "mainProject": "Project 2",
+    "latestGroups": [
+      "Banane",
+      "Fleur"
+    ]
+  },
+  {
+    "lastName": "Archangel",
+    "firstName": "",
+    "type": "TECHLEAD",
+    "trigram": "archangel@4sh.fr",
+    "proStart": 2021,
+    "isAnimator": false,
+    "mainProject": "Project 3",
+    "latestGroups": [
+      "Fleur",
+      "Carapace"
+    ]
+  },
+  {
+    "lastName": "Aurora",
+    "firstName": "",
+    "type": "TECHLEAD",
+    "trigram": "aurora@4sh.fr",
+    "proStart": 2016,
+    "isAnimator": false,
+    "mainProject": "Project 2",
+    "latestGroups": [
+      "Étoile",
+      "Étoile"
+    ]
+  },
+  {
+    "lastName": "Avengers",
+    "firstName": "",
+    "type": "TECHLEAD",
+    "trigram": "avengers@4sh.fr",
+    "proStart": 2021,
+    "isAnimator": false,
+    "mainProject": "Project 2",
+    "latestGroups": [
+      "Carapace",
+      "Fleur"
+    ]
+  },
+  {
+    "lastName": "Beast",
+    "firstName": "",
+    "type": "TECHLEAD",
+    "trigram": "beast@4sh.fr",
+    "proStart": 2013,
+    "isAnimator": false,
+    "mainProject": "Project 1",
+    "latestGroups": [
+      "Champignon",
+      "Fleur"
+    ]
+  },
+  {
+    "lastName": "Black",
+    "firstName": "Knight (Sir Percy of Scandia)",
+    "type": "TECHLEAD",
+    "trigram": "black.knight (sir percy of scandia)@4sh.fr",
+    "proStart": 2019,
+    "isAnimator": false,
+    "mainProject": "Project 2",
+    "latestGroups": [
+      "Fleur",
+      "Fleur"
+    ]
+  },
+  {
+    "lastName": "Calypso",
+    "firstName": "",
+    "type": "TECHLEAD",
+    "trigram": "calypso@4sh.fr",
+    "proStart": 2022,
+    "isAnimator": false,
+    "mainProject": "Project 9",
+    "latestGroups": [
+      "Banane",
+      "Banane"
+    ]
+  },
+  {
+    "lastName": "Captain",
+    "firstName": "America",
+    "type": "TECHLEAD",
+    "trigram": "captain.america@4sh.fr",
+    "proStart": 2015,
+    "isAnimator": false,
+    "mainProject": "Project 9",
+    "latestGroups": [
+      "Étoile",
+      "Champignon"
+    ]
+  },
+  {
+    "lastName": "Clea",
+    "firstName": "",
+    "type": "TECHLEAD",
+    "trigram": "clea@4sh.fr",
+    "proStart": 2020,
+    "isAnimator": true,
+    "mainProject": "Project 10",
+    "latestGroups": [
+      "Carapace",
+      "Étoile"
+    ]
+  },
+  {
+    "lastName": "Colossus",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "colossus@4sh.fr",
+    "proStart": 2021,
+    "isAnimator": false,
+    "mainProject": "Project 8",
+    "latestGroups": [
+      "Carapace",
+      "Banane"
+    ]
+  },
+  {
+    "lastName": "Cyclops",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "cyclops@4sh.fr",
+    "proStart": 2011,
+    "isAnimator": false,
+    "mainProject": "Project 4",
+    "latestGroups": [
+      "Banane",
+      "Étoile"
+    ]
+  },
+  {
+    "lastName": "Daredevil",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "daredevil@4sh.fr",
+    "proStart": 2016,
+    "isAnimator": false,
+    "mainProject": "Project 5",
+    "latestGroups": [
+      "Étoile",
+      "Étoile"
+    ]
+  },
+  {
+    "lastName": "Death",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "death@4sh.fr",
+    "proStart": 2010,
+    "isAnimator": false,
+    "mainProject": "Project 4",
+    "latestGroups": [
+      "Champignon",
+      "Carapace"
+    ]
+  },
+  {
+    "lastName": "Diamondback",
+    "firstName": "(Rachel Leighton)",
+    "type": "DEV",
+    "trigram": "diamondback.(rachel leighton)@4sh.fr",
+    "proStart": 2014,
+    "isAnimator": false,
+    "mainProject": "Project 3",
+    "latestGroups": [
+      "Fleur",
+      "Fleur"
+    ]
+  },
+  {
+    "lastName": "Doctor",
+    "firstName": "Strange",
+    "type": "DEV",
+    "trigram": "doctor.strange@4sh.fr",
+    "proStart": 2017,
+    "isAnimator": false,
+    "mainProject": "Project 3",
+    "latestGroups": [
+      "Banane",
+      "Champignon"
+    ]
+  },
+  {
+    "lastName": "Falcon",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "falcon@4sh.fr",
+    "proStart": 2012,
+    "isAnimator": false,
+    "mainProject": "Project 8",
+    "latestGroups": [
+      "Carapace",
+      "Champignon"
+    ]
+  },
+  {
+    "lastName": "Fantastic",
+    "firstName": "Four",
+    "type": "DEV",
+    "trigram": "fantastic.four@4sh.fr",
+    "proStart": 2022,
+    "isAnimator": false,
+    "mainProject": "Project 1",
+    "latestGroups": [
+      "Banane",
+      "Étoile"
+    ]
+  },
+  {
+    "lastName": "Galactus",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "galactus@4sh.fr",
+    "proStart": 2022,
+    "isAnimator": false,
+    "mainProject": "Project 4",
+    "latestGroups": [
+      "Champignon",
+      "Carapace"
+    ]
+  },
+  {
+    "lastName": "Guardian",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "guardian@4sh.fr",
+    "proStart": 2022,
+    "isAnimator": true,
+    "mainProject": "Project 10",
+    "latestGroups": [
+      "Étoile",
+      "Étoile"
+    ]
+  },
+  {
+    "lastName": "Havok",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "havok@4sh.fr",
+    "proStart": 2017,
+    "isAnimator": false,
+    "mainProject": "Project 6",
+    "latestGroups": [
+      "Banane",
+      "Fleur"
+    ]
+  },
+  {
+    "lastName": "Hercules",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "hercules@4sh.fr",
+    "proStart": 2021,
+    "isAnimator": false,
+    "mainProject": "Project 9",
+    "latestGroups": [
+      "Fleur",
+      "Étoile"
+    ]
+  },
+  {
+    "lastName": "Hulk",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "hulk@4sh.fr",
+    "proStart": 2012,
+    "isAnimator": false,
+    "mainProject": "Project 3",
+    "latestGroups": [
+      "Champignon",
+      "Fleur"
+    ]
+  },
+  {
+    "lastName": "Human",
+    "firstName": "Torch",
+    "type": "DEV",
+    "trigram": "human.torch@4sh.fr",
+    "proStart": 2022,
+    "isAnimator": false,
+    "mainProject": "Project 4",
+    "latestGroups": [
+      "Étoile",
+      "Fleur"
+    ]
+  },
+  {
+    "lastName": "Invisible",
+    "firstName": "Woman",
+    "type": "DEV",
+    "trigram": "invisible.woman@4sh.fr",
+    "proStart": 2011,
+    "isAnimator": false,
+    "mainProject": "Project 7",
+    "latestGroups": [
+      "Banane",
+      "Champignon"
+    ]
+  },
+  {
+    "lastName": "Iron",
+    "firstName": "Fist (Danny Rand)",
+    "type": "DEV",
+    "trigram": "iron.fist (danny rand)@4sh.fr",
+    "proStart": 2019,
+    "isAnimator": false,
+    "mainProject": "Project 5",
+    "latestGroups": [
+      "Banane",
+      "Étoile"
+    ]
+  },
+  {
+    "lastName": "Iron",
+    "firstName": "Man",
+    "type": "DEV",
+    "trigram": "iron.man@4sh.fr",
+    "proStart": 2013,
+    "isAnimator": false,
+    "mainProject": "Project 6",
+    "latestGroups": [
+      "Banane",
+      "Banane"
+    ]
+  },
+  {
+    "lastName": "Juggernaut",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "juggernaut@4sh.fr",
+    "proStart": 2015,
+    "isAnimator": false,
+    "mainProject": "Project 3",
+    "latestGroups": [
+      "Banane",
+      "Carapace"
+    ]
+  },
+  {
+    "lastName": "Magus",
+    "firstName": "(Adam Warlock)",
+    "type": "DEV",
+    "trigram": "magus.(adam warlock)@4sh.fr",
+    "proStart": 2017,
+    "isAnimator": false,
+    "mainProject": "Project 1",
+    "latestGroups": [
+      "Champignon",
+      "Champignon"
+    ]
+  },
+  {
+    "lastName": "Namorita",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "namorita@4sh.fr",
+    "proStart": 2014,
+    "isAnimator": true,
+    "mainProject": "Project 6",
+    "latestGroups": [
+      "Étoile",
+      "Banane"
+    ]
+  },
+  {
+    "lastName": "Nightcrawler",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "nightcrawler@4sh.fr",
+    "proStart": 2017,
+    "isAnimator": false,
+    "mainProject": "Project 4",
+    "latestGroups": [
+      "Carapace",
+      "Étoile"
+    ]
+  },
+  {
+    "lastName": "Northstar",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "northstar@4sh.fr",
+    "proStart": 2018,
+    "isAnimator": false,
+    "mainProject": "Project 10",
+    "latestGroups": [
+      "Fleur",
+      "Carapace"
+    ]
+  },
+  {
+    "lastName": "Nova",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "nova@4sh.fr",
+    "proStart": 2016,
+    "isAnimator": false,
+    "mainProject": "Project 7",
+    "latestGroups": [
+      "Champignon",
+      "Banane"
+    ]
+  },
+  {
+    "lastName": "Polaris",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "polaris@4sh.fr",
+    "proStart": 2015,
+    "isAnimator": false,
+    "mainProject": "Project 8",
+    "latestGroups": [
+      "Étoile",
+      "Carapace"
+    ]
+  },
+  {
+    "lastName": "Professor",
+    "firstName": "X",
+    "type": "DEV",
+    "trigram": "professor.x@4sh.fr",
+    "proStart": 2018,
+    "isAnimator": false,
+    "mainProject": "Project 8",
+    "latestGroups": [
+      "Banane",
+      "Fleur"
+    ]
+  },
+  {
+    "lastName": "Psylocke",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "psylocke@4sh.fr",
+    "proStart": 2013,
+    "isAnimator": false,
+    "mainProject": "Project 3",
+    "latestGroups": [
+      "Carapace",
+      "Banane"
+    ]
+  },
+  {
+    "lastName": "Puck",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "puck@4sh.fr",
+    "proStart": 2018,
+    "isAnimator": false,
+    "mainProject": "Project 1",
+    "latestGroups": [
+      "Carapace",
+      "Carapace"
+    ]
+  },
+  {
+    "lastName": "Puppet",
+    "firstName": "Master",
+    "type": "DEV",
+    "trigram": "puppet.master@4sh.fr",
+    "proStart": 2013,
+    "isAnimator": false,
+    "mainProject": "Project 3",
+    "latestGroups": [
+      "Étoile",
+      "Étoile"
+    ]
+  },
+  {
+    "lastName": "Quasar",
+    "firstName": "(Phyla-Vell)",
+    "type": "DEV",
+    "trigram": "quasar.(phyla-vell)@4sh.fr",
+    "proStart": 2013,
+    "isAnimator": false,
+    "mainProject": "Project 4",
+    "latestGroups": [
+      "Étoile",
+      "Carapace"
+    ]
+  },
+  {
+    "lastName": "Rogue",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "rogue@4sh.fr",
+    "proStart": 2022,
+    "isAnimator": true,
+    "mainProject": "Project 4",
+    "latestGroups": [
+      "Carapace",
+      "Fleur"
+    ]
+  },
+  {
+    "lastName": "Sasquatch",
+    "firstName": "(Walter Langkowski)",
+    "type": "DEV",
+    "trigram": "sasquatch.(walter langkowski)@4sh.fr",
+    "proStart": 2020,
+    "isAnimator": false,
+    "mainProject": "Project 10",
+    "latestGroups": [
+      "Étoile",
+      "Carapace"
+    ]
+  },
+  {
+    "lastName": "Scarlet",
+    "firstName": "Witch",
+    "type": "DEV",
+    "trigram": "scarlet.witch@4sh.fr",
+    "proStart": 2017,
+    "isAnimator": false,
+    "mainProject": "Project 7",
+    "latestGroups": [
+      "Carapace",
+      "Banane"
+    ]
+  },
+  {
+    "lastName": "Shaman",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "shaman@4sh.fr",
+    "proStart": 2013,
+    "isAnimator": false,
+    "mainProject": "Project 6",
+    "latestGroups": [
+      "Étoile",
+      "Banane"
+    ]
+  },
+  {
+    "lastName": "She-Hulk",
+    "firstName": "(Jennifer Walters)",
+    "type": "DEV",
+    "trigram": "she-hulk.(jennifer walters)@4sh.fr",
+    "proStart": 2019,
+    "isAnimator": false,
+    "mainProject": "Project 5",
+    "latestGroups": [
+      "Champignon",
+      "Fleur"
+    ]
+  },
+  {
+    "lastName": "Silver",
+    "firstName": "Surfer",
+    "type": "DEV",
+    "trigram": "silver.surfer@4sh.fr",
+    "proStart": 2014,
+    "isAnimator": false,
+    "mainProject": "Project 8",
+    "latestGroups": [
+      "Étoile",
+      "Banane"
+    ]
+  },
+  {
+    "lastName": "Sleepwalker",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "sleepwalker@4sh.fr",
+    "proStart": 2012,
+    "isAnimator": false,
+    "mainProject": "Project 2",
+    "latestGroups": [
+      "Fleur",
+      "Étoile"
+    ]
+  },
+  {
+    "lastName": "Storm",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "storm@4sh.fr",
+    "proStart": 2017,
+    "isAnimator": false,
+    "mainProject": "Project 1",
+    "latestGroups": [
+      "Champignon",
+      "Champignon"
+    ]
+  },
+  {
+    "lastName": "Talisman",
+    "firstName": "(Elizabeth Twoyoungmen)",
+    "type": "DEV",
+    "trigram": "talisman.(elizabeth twoyoungmen)@4sh.fr",
+    "proStart": 2014,
+    "isAnimator": false,
+    "mainProject": "Project 1",
+    "latestGroups": [
+      "Champignon",
+      "Champignon"
+    ]
+  },
+  {
+    "lastName": "Thanos",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "thanos@4sh.fr",
+    "proStart": 2016,
+    "isAnimator": false,
+    "mainProject": "Project 5",
+    "latestGroups": [
+      "Carapace",
+      "Carapace"
+    ]
+  },
+  {
+    "lastName": "Thor",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "thor@4sh.fr",
+    "proStart": 2019,
+    "isAnimator": true,
+    "mainProject": "Project 9",
+    "latestGroups": [
+      "Champignon",
+      "Banane"
+    ]
+  },
+  {
+    "lastName": "Uatu",
+    "firstName": "The Watcher",
+    "type": "DEV",
+    "trigram": "uatu.the watcher@4sh.fr",
+    "proStart": 2017,
+    "isAnimator": false,
+    "mainProject": "Project 1",
+    "latestGroups": [
+      "Champignon",
+      "Champignon"
+    ]
+  },
+  {
+    "lastName": "Vision",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "vision@4sh.fr",
+    "proStart": 2017,
+    "isAnimator": false,
+    "mainProject": "Project 5",
+    "latestGroups": [
+      "Carapace",
+      "Étoile"
+    ]
+  },
+  {
+    "lastName": "Wasp",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "wasp@4sh.fr",
+    "proStart": 2018,
+    "isAnimator": false,
+    "mainProject": "Project 7",
+    "latestGroups": [
+      "Fleur",
+      "Étoile"
+    ]
+  },
+  {
+    "lastName": "Wolverine",
+    "firstName": "",
+    "type": "DEV",
+    "trigram": "wolverine@4sh.fr",
+    "proStart": 2015,
+    "isAnimator": false,
+    "mainProject": "Project 9",
+    "latestGroups": [
+      "Fleur",
+      "Étoile"
+    ]
+  }
+]

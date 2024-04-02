@@ -26,7 +26,6 @@ declare type CommunityDescriptor = {
     // different groups
     maxMembersPerGroupWithDuplicatedProject: number,
     malusPerSamePath: number,
-    devs: Array<CommunityMember>,
     groups: Array<CommunityGroup>
 }
 

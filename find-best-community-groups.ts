@@ -137,7 +137,7 @@ class GroupMemberShuffler {
     }
 }
 
-async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight, maxSameProjectPerGroup, maxMembersPerGroupWithDuplicatedProject, malusPerSamePath}: CommunityDescriptor): Promise<Result> {
+async function bestShuffleFor({groups, referenceYearForSeniority, xpWeight, maxSameProjectPerGroup, maxMembersPerGroupWithDuplicatedProject, malusPerSamePath}: CommunityDescriptor, members: Array<CommunityMember>): Promise<Result> {
     let bestResult: Result = {devs: [], score: {score: Infinity, groupsScores:[], duplicatedPathsMalus: 0, duplicatedPaths: [], xpStdDev: 0}};
 
     const INITIAL_MEMBERS_RESULT = loadBestResultFile();
@@ -147,7 +147,7 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
             `${m.type}_${m.email}_${m.mainProject}_${m.isAnimator}_${m.proStart}`
 
         let initialHash = INITIAL_MEMBERS_RESULT.map(devIdentity).sort();
-        let actualHash = devs.map(devIdentity).sort();
+        let actualHash = members.map(devIdentity).sort();
         if(initialHash.join(",") !== actualHash.join(",")) {
             console.error(`It seems like there is a remaining ${BEST_RESULT_FILE} file (not matching actual members descriptor): shouldn't you delete it ?`)
             console.info(``)
@@ -157,7 +157,7 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
         }
     }
 
-    const shuffler = new GroupMemberShuffler(devs, groups);
+    const shuffler = new GroupMemberShuffler(members, groups);
 
     let lastIndex = 0, lastTS = Date.now(), idx = 0, attemptsMatchingConstraints = 0, lastAttemptsMatchingConstraints = 0;
     let shuffResult: ShuffleResult;
@@ -167,9 +167,9 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
 
         if(INITIAL_MEMBERS_RESULT && idx===0) {
             assignedMembers.length = 0;
-            Array.prototype.push.apply(assignedMembers, devs.map(d => {
-                const initialMember = INITIAL_MEMBERS_RESULT.find(m => m.firstName === d.firstName && m.lastName === d.lastName)
-                return ({...d, group: groups.find(g => g.name === initialMember.group).id});
+            Array.prototype.push.apply(assignedMembers, members.map(m => {
+                const initialMember = INITIAL_MEMBERS_RESULT.find(m => m.firstName === m.firstName && m.lastName === m.lastName)
+                return ({...m, group: groups.find(g => g.name === initialMember.group).id});
             }))
         }
 
@@ -208,8 +208,8 @@ async function bestShuffleFor({devs, groups, referenceYearForSeniority, xpWeight
 }
 
 
-async function shuffleGroupsFor(communityDescriptor: CommunityDescriptor) {
-    const result = await bestShuffleFor(communityDescriptor);
+async function shuffleGroupsFor(communityDescriptor: CommunityDescriptor, members: Array<CommunityMember>) {
+    const result = await bestShuffleFor(communityDescriptor, members);
     if(!result) {
         return ["Nothing found matching constraints !"];
     }
@@ -338,7 +338,8 @@ function shuffledDevsMatchesConstraint(devs: CommunityMemberWithAssignedGroupId[
 
 async function main() {
     const communityDescriptor: CommunityDescriptor = require('./community-descriptor.json');
-    const results = await shuffleGroupsFor(communityDescriptor);
+    const members: Array<CommunityMember> = require('./members.json');
+    const results = await shuffleGroupsFor(communityDescriptor, members);
     console.log(results);
 }
 
