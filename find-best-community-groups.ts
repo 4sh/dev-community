@@ -21,7 +21,14 @@ const params = match(args)
     command: 'compute',
     trackName: args[1]
   } as const))
-  .otherwise(() => { throw new Error(`Usage:\n- npm run find-best-community-groups compute <trackName>\n- npm run find-best-community-groups show`); })
+  .with(['record-member-groups'], (args) => ({
+    command: 'record-member-groups'
+  } as const))
+  .otherwise(() => { throw new Error(`Usage:
+- npm run find-best-community-groups compute <trackName>
+- npm run find-best-community-groups show
+- npm run find-best-community-groups record-member-groups
+    `); })
 
 console.info(`args: ${JSON.stringify(args)}`)
 
@@ -552,7 +559,31 @@ async function show() {
     // console.log(JSON.stringify(trackResult.members))
 }
 
+function recordMemberGroups() {
+    const members = ensureValidMembers(require(MEMBERS_FILE));
+    const results = loadBestResultFromFile();
+
+    const nonProcessedTrigrams = members.map(m => m.trigram)
+
+    results.trackResults.forEach(trackResult => {
+      trackResult.members.forEach(trackMember => {
+        const member = members.find(m => m.trigram === trackMember.trigram)
+        member.latestGroups.push(trackMember.group);
+        nonProcessedTrigrams.splice(nonProcessedTrigrams.indexOf(member.trigram), 1);
+      })
+    })
+
+    nonProcessedTrigrams.forEach(trigramUnallocatedToAnyGroup => {
+      const member = members.find(m => m.trigram === trigramUnallocatedToAnyGroup)
+      member.latestGroups.push("")
+    })
+
+    fs.writeFileSync(MEMBERS_FILE, JSON.stringify(members, null, '  '));
+    console.log(`Updated ${members.length} members (${nonProcessedTrigrams.length} members are not attending this cycle's meetings)`)
+}
+
 match(params)
   .with({ command: 'compute'}, (params) => computeTrack(params.trackName))
   .with({ command: 'show'}, (params) => show())
+  .with({ command: 'record-member-groups'}, (params) => recordMemberGroups())
   .exhaustive();
