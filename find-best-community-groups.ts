@@ -8,7 +8,7 @@ import {match, P} from "ts-pattern";
 const player = playerFactory({});
 
 const COMMUNITY_DESCRIPTOR_INPUT_FILE = './community-descriptor.json'
-const MEMBERS_INPUT_FILE = './members.json'
+const MEMBERS_FILE = './members.json'
 const BEST_RESULT_OUTPUT_FILE = './best-result.json'
 
 const args = process.argv.slice(2);
@@ -387,25 +387,72 @@ function shuffledDevsMatchesConstraint(devs: CommunityMemberWithAssignedGroupNam
     return true;
 }
 
+function trigramStrToArray(trigramsStr: string|null): string[] {
+  if(!trigramsStr) {
+    return [];
+  }
+
+  return trigramsStr.split(/[\t\s]/gi)
+}
+
+function resolveCommunityMembersFromTrigramsString(trigrams: string[], members: CommunityMember[], scope: string, unknownTrigrams: Array<{scope: string, trigram: string}>) {
+  return trigrams.map(trigram => {
+    const member = members.find(m => m.trigram === trigram);
+    if(!member) {
+      unknownTrigrams.push({ scope, trigram })
+    }
+    return member;
+  })
+}
+
 function ensureValidCommunityDescriptor(members: Array<CommunityMember>, rawCommunityDescriptor: RawCommunityDescriptor): CommunityDescriptor {
 
   const tracksIncludingUnsubscribedMembers = rawCommunityDescriptor.tracks.filter(t => t.alsoIncludeUnsubscribedMembers);
   if(tracksIncludingUnsubscribedMembers.length > 1) {
     throw new Error(`More than 1 Track has [alsoIncludeUnsubscribedMembers] flag to true: ${tracksIncludingUnsubscribedMembers.map(t => t.name).join(", ")}`)
   }
-
   const tracksNotIncludingUnsubscribedMembers = rawCommunityDescriptor.tracks.filter(t => !t.alsoIncludeUnsubscribedMembers);
 
-  let trigramsNotAlreadyReferencedInTracks = members.map(m => m.trigram)
+  if(rawCommunityDescriptor.absentsFromThisCycle) {
+      const absentsFromThisCycleTrigrams = trigramStrToArray(rawCommunityDescriptor.absentsFromThisCycle);
+
+      const absentTrigramsReferencedInTracks = rawCommunityDescriptor.tracks.reduce((absentTrigramsReferencedInTracks, track) => {
+        const trackTrigrams = trigramStrToArray(track.subscribers);
+
+        trackTrigrams.filter(trackTrigram => absentsFromThisCycleTrigrams.includes(trackTrigram))
+          .forEach(referencedAbsentTrackTrigram => {
+            absentTrigramsReferencedInTracks.push({
+              absentTrigram: referencedAbsentTrackTrigram,
+              referencedInTrack: track.name
+            })
+          })
+        return absentTrigramsReferencedInTracks;
+      }, [] as Array<{ absentTrigram: string, referencedInTrack: string }>)
+
+      if(absentTrigramsReferencedInTracks.length) {
+        throw new Error(`Following absent trigram have been referenced in tracks:
+${absentTrigramsReferencedInTracks.map(atrit => `- ${atrit.absentTrigram} referenced in: ${atrit.referencedInTrack}`).join("\n")}`)
+      }
+  }
+
   const unknownTrigrams: Array<{ scope: string, trigram: string }> = []
+  const absentsFromThisCycle = resolveCommunityMembersFromTrigramsString(
+    trigramStrToArray(rawCommunityDescriptor.absentsFromThisCycle), members,
+    `global->absentsFromThisCycle`, unknownTrigrams);
+
+  let trigramsNotAlreadyReferencedInTracks = members
+    .filter(member => absentsFromThisCycle.findIndex(absentMember => absentMember.trigram === member.trigram) === -1)
+    .map(m => m.trigram)
+
   const communityDescriptor: CommunityDescriptor = {
     ...rawCommunityDescriptor,
+    absentsFromThisCycle,
     // Ending list of track by the ones including unsubscribed members, so that we can calculate remaining members
     // not assigned to other tracks
     tracks: tracksNotIncludingUnsubscribedMembers.concat(tracksIncludingUnsubscribedMembers).map(track => {
       const subscriberTrigrams = track.alsoIncludeUnsubscribedMembers
         ? trigramsNotAlreadyReferencedInTracks
-        : track.subscribers.split(/[\t\s]/gi);
+        : trigramStrToArray(track.subscribers);
 
       track.groups.forEach(group => {
         if(group.animator && !subscriberTrigrams.includes(group.animator)) {
@@ -415,24 +462,21 @@ function ensureValidCommunityDescriptor(members: Array<CommunityMember>, rawComm
 
       trigramsNotAlreadyReferencedInTracks = trigramsNotAlreadyReferencedInTracks.filter(t => !subscriberTrigrams.includes(t))
 
-      return {
-        ...track,
-        subscribers: subscriberTrigrams.map(trigram => {
-          const member = members.find(m => m.trigram === trigram);
-          if(!member) {
-            unknownTrigrams.push({ scope: `${track.name}->subscribers`, trigram })
-          }
-          return member;
-        })
-      }
+      const subscribers = resolveCommunityMembersFromTrigramsString(subscriberTrigrams, members, `${track.name}->subscribers`, unknownTrigrams);
+      return { ...track, subscribers }
     })
   }
 
-  if(trigramsNotAlreadyReferencedInTracks.length) {
-    throw new Error(`Some trigrams have not been allocated to any tracks: ${trigramsNotAlreadyReferencedInTracks.join(", ")}`)
-  }
-  if(unknownTrigrams.length) {
-    throw new Error(`Unknown trigrams detected: ${unknownTrigrams.map(ut => `${ut.trigram} (in scope [${ut.scope}])`).join(", ")}`)
+  if(trigramsNotAlreadyReferencedInTracks.length + unknownTrigrams.length > 0) {
+    const errors = [] as string[];
+    if(trigramsNotAlreadyReferencedInTracks.length) {
+      errors.push(`Some trigrams have not been allocated to any tracks: ${trigramsNotAlreadyReferencedInTracks.join(", ")}`)
+    }
+    if(unknownTrigrams.length) {
+      errors.push(`Unknown trigrams detected: ${unknownTrigrams.map(ut => `${ut.trigram} (in scope [${ut.scope}])`).join(", ")}`)
+    }
+
+    throw new Error(errors.join("\n"));
   }
 
   // Checking track group constraints
@@ -482,7 +526,7 @@ function ensureValidMembers(members: Array<CommunityMember>): Array<CommunityMem
 }
 
 async function computeTrack(trackName: string) {
-    const members = ensureValidMembers(require(MEMBERS_INPUT_FILE));
+    const members = ensureValidMembers(require(MEMBERS_FILE));
     const communityDescriptor = ensureValidCommunityDescriptor(members, require(COMMUNITY_DESCRIPTOR_INPUT_FILE));
 
     const track = communityDescriptor.tracks.find(t => t.name.toLowerCase() === trackName.toLowerCase());

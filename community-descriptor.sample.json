@@ -4,6 +4,7 @@
   "maxSameProjectPerGroup": 2,
   "maxMembersPerGroupWithDuplicatedProject": 3,
   "malusPerSamePath": 0.1,
+  "absentsFromThisCycle": null,
   "tracks": [
     {
       "name": "Sessions libres",

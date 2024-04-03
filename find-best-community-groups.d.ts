@@ -16,6 +16,7 @@ declare type CommunityGroup = {
 }
 declare type RawTrackDescriptor = {
   name: string,
+  // space/tab separated list of trigrams
   subscribers: string,
   alsoIncludeUnsubscribedMembers?: boolean,
   groups: Array<CommunityGroup>
@@ -36,9 +37,12 @@ declare type RawCommunityDescriptor = {
     // different groups
     maxMembersPerGroupWithDuplicatedProject: number,
     malusPerSamePath: number,
+    // space/tab separated list of trigrams
+    absentsFromThisCycle: string|null,
     tracks: Array<RawTrackDescriptor>,
 }
-declare type CommunityDescriptor = Omit<RawCommunityDescriptor, "tracks"> & {
+declare type CommunityDescriptor = Omit<RawCommunityDescriptor, "tracks"|"absentsFromThisCycle"> & {
+  absentsFromThisCycle: Array<CommunityMember>,
   tracks: Array<TrackDescriptor>
 }
 
