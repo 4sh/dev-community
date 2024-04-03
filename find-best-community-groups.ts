@@ -104,13 +104,7 @@ class TrackMemberShuffler {
             if(group.animator) {
               const animator = this.track.subscribers.find(sub => sub.trigram === group.animator);
               result.assignedMembers.push({
-                lastName: animator.lastName,
-                firstName: animator.firstName,
-                type: animator.type,
-                trigram: animator.trigram,
-                proStart: animator.proStart,
-                mainProject: animator.mainProject,
-                latestGroups: animator.latestGroups,
+                ...animator,
                 group: group.name
               })
 
@@ -135,14 +129,8 @@ class TrackMemberShuffler {
                 const tcIndex = shuffledTechleadIndexes.shift();
                 const techlead = this.techleads[tcIndex];
                 result.assignedMembers.push({
-                    lastName: techlead.lastName,
-                    firstName: techlead.firstName,
-                    type: 'TECHLEAD',
-                    trigram: techlead.trigram,
-                    proStart: techlead.proStart,
-                    mainProject: techlead.mainProject,
-                    latestGroups: techlead.latestGroups,
-                    group: group.name
+                  ...techlead,
+                  group: group.name
                 })
                 groupFootprintChunks.push(this.techleadHashes[tcIndex])
             }
@@ -151,14 +139,8 @@ class TrackMemberShuffler {
                 const devIndex = shuffledDevIndexes.shift();
                 const dev = this.devs[devIndex];
                 result.assignedMembers.push({
-                    lastName: dev.lastName,
-                    firstName: dev.firstName,
-                    type: 'DEV',
-                    trigram: dev.trigram,
-                    proStart: dev.proStart,
-                    mainProject: dev.mainProject,
-                    latestGroups: dev.latestGroups,
-                    group: group.name
+                  ...dev,
+                  group: group.name
                 })
                 groupFootprintChunks.push(this.devHashes[devIndex])
             }
@@ -218,7 +200,7 @@ async function bestShuffleFor(communityDescriptor: CommunityDescriptor, track: T
             if(shuffledDevsMatchesConstraint(assignedMembers, groups, communityDescriptor.maxSameProjectPerGroup, communityDescriptor.maxMembersPerGroupWithDuplicatedProject)) {
                 attemptsMatchingConstraints++;
 
-                const score = scoreOf(assignedMembers, groups, communityDescriptor.referenceYearForSeniority, communityDescriptor.xpWeight, communityDescriptor.malusPerSamePath);
+                const score = scoreOf(assignedMembers, groups, communityDescriptor);
                 const result: TrackResult = { track, score, members: assignedMembers };
                 if(bestResult.score.score > score.score) {
                     bestResult = result;
@@ -312,17 +294,17 @@ function xpOf(member: CommunityMember, referenceYearForSeniority: number) {
     return referenceYearForSeniority - member.proStart;
 }
 
-function scoreOf(devs: CommunityMemberWithAssignedGroupName[], groups: CommunityGroup[], referenceYearForSeniority: number, xpWeight: number, malusPerSamePath: number): ResultDetailedScore {
+function scoreOf(devs: CommunityMemberWithAssignedGroupName[], groups: CommunityGroup[], communityDescriptor: CommunityDescriptor): ResultDetailedScore {
     const result = groups.reduce((result, group) => {
         // only devs are counting in the score (tech lead XP is not taken into account)
-        const groupXPs = devs.filter(d => d.group === group.name && d.type === 'DEV').map(d => xpOf(d, referenceYearForSeniority))
+        const groupXPs = devs.filter(d => d.group === group.name && d.type === 'DEV').map(d => xpOf(d, communityDescriptor.referenceYearForSeniority))
         const groupTotalXP = groupXPs.reduce((total, years) => total+years, 0);
         const groupAverageXP = Math.round(groupTotalXP*100 / groupXPs.length)/100;
 
         const groupMembers = devs.filter(d => d.group === group.name);
         groupMembers.forEach(m => {
             // Members having "empty" past group should be ignored
-            const newConsecutiveGroups = [group.name].concat(m.latestGroups.slice(0))
+            const newConsecutiveGroups = [group.name].concat(m.latestGroups.slice(0, communityDescriptor.samePathSize-1))
             if(newConsecutiveGroups.findIndex(lg => lg === '') === -1) {
                 const path = newConsecutiveGroups.join("|")
                 if(result.alreadyEncounteredPaths.has(path)) {
@@ -349,9 +331,9 @@ function scoreOf(devs: CommunityMemberWithAssignedGroupName[], groups: Community
         };
     }, { score: 0.0, groupsScores: [] as GroupScore[], alreadyEncounteredPaths: new Map<string, CommunityMemberWithAssignedGroupName[]>(), samePaths: [] as DuplicatedPath[], wildcardProjectGeneratedIndex: 0 });
 
-    const xpStdDev = stddev(result.groupsScores.map(gs => gs.groupAverageXP * xpWeight));
+    const xpStdDev = stddev(result.groupsScores.map(gs => gs.groupAverageXP * communityDescriptor.xpWeight));
     const duplicatedPaths = result.samePaths;
-    const duplicatedPathsMalus = duplicatedPaths.length * malusPerSamePath;
+    const duplicatedPathsMalus = duplicatedPaths.length * communityDescriptor.malusPerSamePath;
 
     return {
         score: xpStdDev + duplicatedPathsMalus,

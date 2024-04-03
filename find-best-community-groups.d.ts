@@ -36,6 +36,7 @@ declare type RawCommunityDescriptor = {
     // those members will have to be distributed across minimum 7-2=5
     // different groups
     maxMembersPerGroupWithDuplicatedProject: number,
+    samePathSize: number,
     malusPerSamePath: number,
     // space/tab separated list of trigrams
     absentsFromThisCycle: string|null,
