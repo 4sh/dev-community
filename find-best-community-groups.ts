@@ -323,15 +323,17 @@ function scoreOf(devs: CommunityMemberWithAssignedGroupName[], groups: Community
                 }
             }
         })
-        const projects = groupMembers.map((d, idx) => d.mainProject==='*'?'project '+idx:d.mainProject);
+
+        const projects = groupMembers.map((d, idx) => d.mainProject==='*'?`_wildcarded_project_${result.wildcardProjectGeneratedIndex++}`:d.mainProject);
         const sameProjectsCounts = projects.length - new Set(projects).size;
         return {
             score: 0.0,
             groupsScores: result.groupsScores.concat([{ name: group.name, groupXPs, groupTotalXP, groupAverageXP, projects, sameProjectsCounts }]),
             alreadyEncounteredPaths: result.alreadyEncounteredPaths,
-            samePaths: result.samePaths
+            samePaths: result.samePaths,
+            wildcardProjectGeneratedIndex: result.wildcardProjectGeneratedIndex
         };
-    }, { score: 0.0, groupsScores: [], alreadyEncounteredPaths: new Map<string, CommunityMemberWithAssignedGroupName[]>(), samePaths: [] } as { score: number, groupsScores: GroupScore[], alreadyEncounteredPaths: Map<string, CommunityMemberWithAssignedGroupName[]>, samePaths: DuplicatedPath[] });
+    }, { score: 0.0, groupsScores: [] as GroupScore[], alreadyEncounteredPaths: new Map<string, CommunityMemberWithAssignedGroupName[]>(), samePaths: [] as DuplicatedPath[], wildcardProjectGeneratedIndex: 0 });
 
     const xpStdDev = stddev(result.groupsScores.map(gs => gs.groupAverageXP * xpWeight));
     const duplicatedPaths = result.samePaths;
