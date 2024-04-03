@@ -3,7 +3,10 @@
 Install dependencies :
 ```npm ci```
 
-### Finding best community groups
+### Pre-requisites / Configuration
+
+Create a `members.json` file in root directory (you have a `members.sample.json` sample file, but this file could
+also be generated/exported from an in-house spreadsheet).
 
 Create a `community-descriptor.json` file in root directory (you have a `community-descriptor.sample.json` sample file)
 
@@ -12,7 +15,32 @@ Download a sound which will be played whenever a new result beating previous sco
 wget https://assets.mixkit.co/active_storage/sfx/2848/2848.wav -O mixkit-gaming-lock-2848.wav
 ```
 
-Run `npm run start` to start running a script who will try a lot of shufflings and will keep the "best" configuration
-for actual inputs declared into `community-descriptor.json` file.
+### Finding best community groups
 
-Whenever a configuration will be found, a **sound** will be played, and the configuration will be stored into `best-result.json` file.
+Run `npm run find-best-community-groups compute <Track name>` (example: `npm run find-best-community-groups compute "Sessions libres"`)
+to look for the best spreading of members across different groups declared in `<Track name>`.
+
+The algorithm is pretty simple: it will make a shuffling or track subscribers across different track's declared groups,
+and will give a "score" (based on several criteria) to the configuration (lower scores are better).
+
+Given that this is totally random, the more you spend time on this, and the best results you will get
+(keep in mind that a score `< 0.2` should be nice already).
+
+Whenever a better score is found, a **sound** will be played, and the Track's group filling will be stored
+into `best-result.json` file.
+
+Repeat this for every configured Tracks, so that you get a `best-result.json` file covering all these Tracks.
+
+### Showing every Tracks' best results
+
+Run `npm run find-best-community-groups show` to list every Tracks and spreading of members (+ stats) across tracks'
+groups.
+
+This should give you an overview of the upcoming cycle configuration to check if everything looks good.
+
+### Updating `members.json` groups
+
+Once the cycle is started and you communicated groups assignments to everyone, you can "enrich" `members.json` file
+with the new groups assignments coming from `best-results.json` file, so that these group will be taken
+into consideration for the `same path` constraint during your next cycle.
+
