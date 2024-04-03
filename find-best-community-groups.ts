@@ -55,8 +55,8 @@ class GroupMemberShuffler {
         this.techleadHashes = this.techleads.map(hashExtractor);
 
         projectIndexes.forEach(project => {
-            this.perProjectDevs.set(project, members.filter(m => m.type === 'DEV'))
-            this.perProjectTechleads.set(project, members.filter(m => m.type === 'TECHLEAD'))
+            this.perProjectDevs.set(project, members.filter(m => m.type === 'DEV' && m.mainProject === project))
+            this.perProjectTechleads.set(project, members.filter(m => m.type === 'TECHLEAD' && m.mainProject === project))
         })
     }
 
