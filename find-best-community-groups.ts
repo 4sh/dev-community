@@ -322,7 +322,7 @@ function scoreOf(devs: CommunityMemberWithAssignedGroupName[], groups: Community
         const groupMembers = devs.filter(d => d.group === group.name);
         groupMembers.forEach(m => {
             // Members having "empty" past group should be ignored
-            const newConsecutiveGroups = m.latestGroups.slice(1).concat([group.name])
+            const newConsecutiveGroups = [group.name].concat(m.latestGroups.slice(0))
             if(newConsecutiveGroups.findIndex(lg => lg === '') === -1) {
                 const path = newConsecutiveGroups.join("|")
                 if(result.alreadyEncounteredPaths.has(path)) {
@@ -568,14 +568,14 @@ function recordMemberGroups() {
     results.trackResults.forEach(trackResult => {
       trackResult.members.forEach(trackMember => {
         const member = members.find(m => m.trigram === trackMember.trigram)
-        member.latestGroups.push(trackMember.group);
+        member.latestGroups.unshift(trackMember.group);
         nonProcessedTrigrams.splice(nonProcessedTrigrams.indexOf(member.trigram), 1);
       })
     })
 
     nonProcessedTrigrams.forEach(trigramUnallocatedToAnyGroup => {
       const member = members.find(m => m.trigram === trigramUnallocatedToAnyGroup)
-      member.latestGroups.push("")
+      member.latestGroups.unshift("")
     })
 
     fs.writeFileSync(MEMBERS_FILE, JSON.stringify(members, null, '  '));
