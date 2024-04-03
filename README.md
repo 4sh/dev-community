@@ -44,3 +44,7 @@ Once the cycle is started and you communicated groups assignments to everyone, y
 with the new groups assignments coming from `best-results.json` file, so that these group will be taken
 into consideration for the `same path` constraint during your next cycle.
 
+To do this, simply execute `npm run find-best-community-groups record-member-groups` and `best-results.json` file will be updated.
+
+_As a side note, if you configured people in the `absentsFromThisCycle` property, absent people will have their
+latest group valued to `""`._
