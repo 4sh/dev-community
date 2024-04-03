@@ -379,15 +379,6 @@ function shuffledDevsMatchesConstraint(devs: CommunityMemberWithAssignedGroupNam
 }
 
 function ensureValidCommunityDescriptor(members: Array<CommunityMember>, rawCommunityDescriptor: RawCommunityDescriptor): CommunityDescriptor {
-  const membersIndexedByTrigram = Array.from(members.reduce((trigramsCounts, member) => {
-    trigramsCounts.set(member.trigram, (trigramsCounts.get(member.trigram) || []).concat(member));
-    return trigramsCounts;
-  }, new Map<string, Array<CommunityMember>>()).entries())
-
-  const duplicatedTrigrams = membersIndexedByTrigram.filter(([trigram, members]) => members.length > 1)
-  if(duplicatedTrigrams.length) {
-    throw new Error(`Duplicated trigram detected: ${duplicatedTrigrams.map(([trigram, members]) => `${trigram} (${members.map(m => `${m.firstName} ${m.lastName}`).join(", ")})`).join(", ")}`)
-  }
 
   const tracksIncludingUnsubscribedMembers = rawCommunityDescriptor.tracks.filter(t => t.alsoIncludeUnsubscribedMembers);
   if(tracksIncludingUnsubscribedMembers.length > 1) {
@@ -396,7 +387,7 @@ function ensureValidCommunityDescriptor(members: Array<CommunityMember>, rawComm
 
   const tracksNotIncludingUnsubscribedMembers = rawCommunityDescriptor.tracks.filter(t => !t.alsoIncludeUnsubscribedMembers);
 
-  let trigramsNotAlreadyReferencedInTracks = membersIndexedByTrigram.map(([trigram, members]) => trigram);
+  let trigramsNotAlreadyReferencedInTracks = members.map(m => m.trigram)
   const unknownTrigrams: Array<{ scope: string, trigram: string }> = []
   const communityDescriptor: CommunityDescriptor = {
     ...rawCommunityDescriptor,
@@ -467,11 +458,23 @@ function ensureValidCommunityDescriptor(members: Array<CommunityMember>, rawComm
   return communityDescriptor;
 }
 
-async function main(trackName: string) {
-    const rawCommunityDescriptor: RawCommunityDescriptor = require(COMMUNITY_DESCRIPTOR_INPUT_FILE);
-    const members: Array<CommunityMember> = require(MEMBERS_INPUT_FILE);
+function ensureValidMembers(members: Array<CommunityMember>): Array<CommunityMember> {
+  const membersIndexedByTrigram = Array.from(members.reduce((trigramsCounts, member) => {
+    trigramsCounts.set(member.trigram, (trigramsCounts.get(member.trigram) || []).concat(member));
+    return trigramsCounts;
+  }, new Map<string, Array<CommunityMember>>()).entries())
 
-    const communityDescriptor = ensureValidCommunityDescriptor(members, rawCommunityDescriptor);
+  const duplicatedTrigrams = membersIndexedByTrigram.filter(([trigram, members]) => members.length > 1)
+  if(duplicatedTrigrams.length) {
+    throw new Error(`Duplicated trigram detected: ${duplicatedTrigrams.map(([trigram, members]) => `${trigram} (${members.map(m => `${m.firstName} ${m.lastName}`).join(", ")})`).join(", ")}`)
+  }
+
+  return members;
+}
+
+async function main(trackName: string) {
+    const members = ensureValidMembers(require(MEMBERS_INPUT_FILE));
+    const communityDescriptor = ensureValidCommunityDescriptor(members, require(COMMUNITY_DESCRIPTOR_INPUT_FILE));
 
     const track = communityDescriptor.tracks.find(t => t.name.toLowerCase() === trackName.toLowerCase());
     if(!track) {
