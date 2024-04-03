@@ -3,6 +3,7 @@
 import * as fs from 'node:fs'
 import fisherYatesShuffle from 'fisher-yates'
 import playerFactory from 'play-sound'
+import {match, P} from "ts-pattern";
 
 const player = playerFactory({});
 
@@ -12,10 +13,15 @@ const BEST_RESULT_OUTPUT_FILE = './best-result.json'
 
 const args = process.argv.slice(2);
 
-if(args.length !== 1) {
-  throw new Error(`Usage: npm run find-best-community-groups <trackName>`)
-}
-const trackName = args[0];
+const params = match(args)
+  .with(['show'], () => ({
+    command: 'show'
+  } as const))
+  .with(['compute', P.string], (args) => ({
+    command: 'compute',
+    trackName: args[1]
+  } as const))
+  .otherwise(() => { throw new Error(`Usage:\n- npm run find-best-community-groups compute <trackName>\n- npm run find-best-community-groups show`); })
 
 console.info(`args: ${JSON.stringify(args)}`)
 
@@ -244,6 +250,33 @@ async function shuffleGroupsFor(communityDescriptor: CommunityDescriptor, trackD
     onTrackResultFound(result, communityDescriptor);
 }
 
+function showTrackResult(trackResult: TrackResult, referenceYearForSeniority: number) {
+  console.log(`Group assignments:`)
+  trackResult.score.groupsScores.forEach((groupScore, idx) => {
+    const group = trackResult.track.groups.find(g => g.name === groupScore.name);
+    const groupMembers = trackResult.members.filter(member => member.group === groupScore.name)
+    console.log(`[${groupScore.name}] - avg_xp(dev)=${groupScore.groupAverageXP}, tot_xp(dev)=${groupScore.groupTotalXP}, count(dev)=${groupMembers.filter(m => m.type==='DEV').length}, count(tl)=${groupMembers.filter(m => m.type==='TECHLEAD').length}`)
+    console.log(groupMembers
+      .map(member => `${member.trigram === group.animator?'*':''}${member.firstName} ${member.lastName}${member.trigram === group.animator?'*':''} (XP=${xpOf(member, referenceYearForSeniority)}, ${member.mainProject})`)
+      .join(", "))
+    console.log(``);
+  })
+
+  console.log(`Global score: ${trackResult.score.score}`)
+  console.log(`Standard deviation on groups' avg_xp(dev) : ${trackResult.score.xpStdDev}`)
+  console.log(`Duplicated paths malus : ${trackResult.score.duplicatedPathsMalus}`)
+  if(trackResult.score.duplicatedPaths.length) {
+    console.log(`Detailed duplicated paths : ${JSON.stringify(trackResult.score.duplicatedPaths)}`)
+  }
+  console.log('')
+
+  trackResult.score.groupsScores.forEach((groupScore, idx) => {
+    console.log(`${groupScore.name} same projects #: tot=${groupScore.sameProjectsCounts}`)
+  })
+
+  console.log('')
+}
+
 function onTrackResultFound(trackResult: TrackResult, communityDescriptor: CommunityDescriptor) {
     const result: Result = loadBestResultFromFile() || {trackResults: [], communityDescriptor}
 
@@ -256,33 +289,7 @@ function onTrackResultFound(trackResult: TrackResult, communityDescriptor: Commu
 
     fs.writeFileSync(BEST_RESULT_OUTPUT_FILE, JSON.stringify(result, null, '  '));
 
-    console.log(`Group assignments:`)
-    trackResult.score.groupsScores.forEach((groupScore, idx) => {
-        const group = trackResult.track.groups.find(g => g.name === groupScore.name);
-        const groupMembers = trackResult.members.filter(member => member.group === groupScore.name)
-        console.log(`[${groupScore.name}] - avg_xp(dev)=${groupScore.groupAverageXP}, tot_xp(dev)=${groupScore.groupTotalXP}, count(dev)=${groupMembers.filter(m => m.type==='DEV').length}, count(tl)=${groupMembers.filter(m => m.type==='TECHLEAD').length}`)
-        console.log(groupMembers
-            .map(member => `${member.trigram === group.animator?'*':''}${member.firstName} ${member.lastName}${member.trigram === group.animator?'*':''} (XP=${xpOf(member, communityDescriptor.referenceYearForSeniority)}, ${member.mainProject})`)
-            .join(", "))
-        console.log(``);
-    })
-
-    console.log(`Global score: ${trackResult.score.score}`)
-    console.log(`Standard deviation on groups' avg_xp(dev) : ${trackResult.score.xpStdDev}`)
-    console.log(`Duplicated paths malus : ${trackResult.score.duplicatedPathsMalus}`)
-    if(trackResult.score.duplicatedPaths.length) {
-        console.log(`Detailed duplicated paths : ${JSON.stringify(trackResult.score.duplicatedPaths)}`)
-    }
-    console.log('')
-
-    trackResult.score.groupsScores.forEach((groupScore, idx) => {
-        console.log(`${groupScore.name} same projects #: tot=${groupScore.sameProjectsCounts}`)
-    })
-
-    console.log('')
-
-    console.log("members (to import in google spreadsheet, through Actions > Import fill-groups JSON menu): ")
-    console.log(JSON.stringify(trackResult.members))
+    showTrackResult(trackResult, communityDescriptor.referenceYearForSeniority);
 
     // Trying to play the sound ... and if it fails, never mind !
     try { player.play('mixkit-gaming-lock-2848.wav') }catch(e) {}
@@ -474,7 +481,7 @@ function ensureValidMembers(members: Array<CommunityMember>): Array<CommunityMem
   return members;
 }
 
-async function main(trackName: string) {
+async function computeTrack(trackName: string) {
     const members = ensureValidMembers(require(MEMBERS_INPUT_FILE));
     const communityDescriptor = ensureValidCommunityDescriptor(members, require(COMMUNITY_DESCRIPTOR_INPUT_FILE));
 
@@ -487,4 +494,21 @@ async function main(trackName: string) {
     console.log(results);
 }
 
-main(trackName)
+async function show() {
+    const results = loadBestResultFromFile();
+    results.trackResults.forEach(trackResult => {
+      console.log(`******************`)
+      console.log(`*** TRACK: ${trackResult.track.name}`)
+      console.log(`******************`)
+
+      showTrackResult(trackResult, results.communityDescriptor.referenceYearForSeniority);
+    })
+
+    // console.log("members (to import in google spreadsheet, through Actions > Import fill-groups JSON menu): ")
+    // console.log(JSON.stringify(trackResult.members))
+}
+
+match(params)
+  .with({ command: 'compute'}, (params) => computeTrack(params.trackName))
+  .with({ command: 'show'}, (params) => show())
+  .exhaustive();
