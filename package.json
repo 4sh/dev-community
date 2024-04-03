@@ -2,7 +2,7 @@
   "name": "find-best-shuffled-devgroups",
   "version": "1.0.0",
   "scripts": {
-    "start": "node --loader ts-node/esm/transpile-only find-best-community-groups.ts"
+    "find-best-community-groups": "node --loader ts-node/esm/transpile-only find-best-community-groups.ts $*"
   },
   "dependencies": {
     "fisher-yates": "1.0.3",

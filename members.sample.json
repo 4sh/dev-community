@@ -5,7 +5,6 @@
     "type": "TECHLEAD",
     "trigram": "AWK",
     "proStart": 2014,
-    "isAnimator": true,
     "mainProject": "Project 7",
     "latestGroups": [
       "Champignon",
@@ -18,7 +17,6 @@
     "type": "TECHLEAD",
     "trigram": "AFT",
     "proStart": 2021,
-    "isAnimator": false,
     "mainProject": "Project 2",
     "latestGroups": [
       "Fleur",
@@ -31,7 +29,6 @@
     "type": "TECHLEAD",
     "trigram": "AOE",
     "proStart": 2012,
-    "isAnimator": false,
     "mainProject": "Project 2",
     "latestGroups": [
       "Banane",
@@ -44,7 +41,6 @@
     "type": "TECHLEAD",
     "trigram": "AAL",
     "proStart": 2021,
-    "isAnimator": false,
     "mainProject": "Project 3",
     "latestGroups": [
       "Fleur",
@@ -57,7 +53,6 @@
     "type": "TECHLEAD",
     "trigram": "AAA",
     "proStart": 2016,
-    "isAnimator": false,
     "mainProject": "Project 2",
     "latestGroups": [
       "Étoile",
@@ -70,7 +65,6 @@
     "type": "TECHLEAD",
     "trigram": "AAS",
     "proStart": 2021,
-    "isAnimator": false,
     "mainProject": "Project 2",
     "latestGroups": [
       "Carapace",
@@ -83,7 +77,6 @@
     "type": "TECHLEAD",
     "trigram": "BBT",
     "proStart": 2013,
-    "isAnimator": false,
     "mainProject": "Project 1",
     "latestGroups": [
       "Champignon",
@@ -96,7 +89,6 @@
     "type": "TECHLEAD",
     "trigram": "BLK",
     "proStart": 2019,
-    "isAnimator": false,
     "mainProject": "Project 2",
     "latestGroups": [
       "Fleur",
@@ -109,7 +101,6 @@
     "type": "TECHLEAD",
     "trigram": "CCO",
     "proStart": 2022,
-    "isAnimator": false,
     "mainProject": "Project 9",
     "latestGroups": [
       "Banane",
@@ -122,7 +113,6 @@
     "type": "TECHLEAD",
     "trigram": "CAA",
     "proStart": 2015,
-    "isAnimator": false,
     "mainProject": "Project 9",
     "latestGroups": [
       "Étoile",
@@ -135,7 +125,6 @@
     "type": "TECHLEAD",
     "trigram": "CCA",
     "proStart": 2020,
-    "isAnimator": true,
     "mainProject": "Project 10",
     "latestGroups": [
       "Carapace",
@@ -148,7 +137,6 @@
     "type": "DEV",
     "trigram": "COS",
     "proStart": 2021,
-    "isAnimator": false,
     "mainProject": "Project 8",
     "latestGroups": [
       "Carapace",
@@ -161,7 +149,6 @@
     "type": "DEV",
     "trigram": "CYS",
     "proStart": 2011,
-    "isAnimator": false,
     "mainProject": "Project 4",
     "latestGroups": [
       "Banane",
@@ -174,7 +161,6 @@
     "type": "DEV",
     "trigram": "DDL",
     "proStart": 2016,
-    "isAnimator": false,
     "mainProject": "Project 5",
     "latestGroups": [
       "Étoile",
@@ -187,7 +173,6 @@
     "type": "DEV",
     "trigram": "DDH",
     "proStart": 2010,
-    "isAnimator": false,
     "mainProject": "Project 4",
     "latestGroups": [
       "Champignon",
@@ -200,7 +185,6 @@
     "type": "DEV",
     "trigram": "DIK",
     "proStart": 2014,
-    "isAnimator": false,
     "mainProject": "Project 3",
     "latestGroups": [
       "Fleur",
@@ -213,7 +197,6 @@
     "type": "DEV",
     "trigram": "DSE",
     "proStart": 2017,
-    "isAnimator": false,
     "mainProject": "Project 3",
     "latestGroups": [
       "Banane",
@@ -226,7 +209,6 @@
     "type": "DEV",
     "trigram": "FFN",
     "proStart": 2012,
-    "isAnimator": false,
     "mainProject": "Project 8",
     "latestGroups": [
       "Carapace",
@@ -239,7 +221,6 @@
     "type": "DEV",
     "trigram": "FFR",
     "proStart": 2022,
-    "isAnimator": false,
     "mainProject": "Project 1",
     "latestGroups": [
       "Banane",
@@ -252,7 +233,6 @@
     "type": "DEV",
     "trigram": "GGS",
     "proStart": 2022,
-    "isAnimator": false,
     "mainProject": "Project 4",
     "latestGroups": [
       "Champignon",
@@ -265,7 +245,6 @@
     "type": "DEV",
     "trigram": "GGN",
     "proStart": 2022,
-    "isAnimator": true,
     "mainProject": "Project 10",
     "latestGroups": [
       "Étoile",
@@ -278,7 +257,6 @@
     "type": "DEV",
     "trigram": "HHK",
     "proStart": 2017,
-    "isAnimator": false,
     "mainProject": "Project 6",
     "latestGroups": [
       "Banane",
@@ -291,7 +269,6 @@
     "type": "DEV",
     "trigram": "HHS",
     "proStart": 2021,
-    "isAnimator": false,
     "mainProject": "Project 9",
     "latestGroups": [
       "Fleur",
@@ -304,7 +281,6 @@
     "type": "DEV",
     "trigram": "HHK",
     "proStart": 2012,
-    "isAnimator": false,
     "mainProject": "Project 3",
     "latestGroups": [
       "Champignon",
@@ -317,7 +293,6 @@
     "type": "DEV",
     "trigram": "HTH",
     "proStart": 2022,
-    "isAnimator": false,
     "mainProject": "Project 4",
     "latestGroups": [
       "Étoile",
@@ -330,7 +305,6 @@
     "type": "DEV",
     "trigram": "IWN",
     "proStart": 2011,
-    "isAnimator": false,
     "mainProject": "Project 7",
     "latestGroups": [
       "Banane",
@@ -343,7 +317,6 @@
     "type": "DEV",
     "trigram": "IRN",
     "proStart": 2019,
-    "isAnimator": false,
     "mainProject": "Project 5",
     "latestGroups": [
       "Banane",
@@ -356,7 +329,6 @@
     "type": "DEV",
     "trigram": "IMN",
     "proStart": 2013,
-    "isAnimator": false,
     "mainProject": "Project 6",
     "latestGroups": [
       "Banane",
@@ -369,7 +341,6 @@
     "type": "DEV",
     "trigram": "JJT",
     "proStart": 2015,
-    "isAnimator": false,
     "mainProject": "Project 3",
     "latestGroups": [
       "Banane",
@@ -382,7 +353,6 @@
     "type": "DEV",
     "trigram": "AWK",
     "proStart": 2017,
-    "isAnimator": false,
     "mainProject": "Project 1",
     "latestGroups": [
       "Champignon",
@@ -395,7 +365,6 @@
     "type": "DEV",
     "trigram": "NNA",
     "proStart": 2014,
-    "isAnimator": true,
     "mainProject": "Project 6",
     "latestGroups": [
       "Étoile",
@@ -408,7 +377,6 @@
     "type": "DEV",
     "trigram": "NNR",
     "proStart": 2017,
-    "isAnimator": false,
     "mainProject": "Project 4",
     "latestGroups": [
       "Carapace",
@@ -421,7 +389,6 @@
     "type": "DEV",
     "trigram": "NNR",
     "proStart": 2018,
-    "isAnimator": false,
     "mainProject": "Project 10",
     "latestGroups": [
       "Fleur",
@@ -434,7 +401,6 @@
     "type": "DEV",
     "trigram": "NNA",
     "proStart": 2016,
-    "isAnimator": false,
     "mainProject": "Project 7",
     "latestGroups": [
       "Champignon",
@@ -447,7 +413,6 @@
     "type": "DEV",
     "trigram": "PPS",
     "proStart": 2015,
-    "isAnimator": false,
     "mainProject": "Project 8",
     "latestGroups": [
       "Étoile",
@@ -460,7 +425,6 @@
     "type": "DEV",
     "trigram": "PXR",
     "proStart": 2018,
-    "isAnimator": false,
     "mainProject": "Project 8",
     "latestGroups": [
       "Banane",
@@ -473,7 +437,6 @@
     "type": "DEV",
     "trigram": "PPE",
     "proStart": 2013,
-    "isAnimator": false,
     "mainProject": "Project 3",
     "latestGroups": [
       "Carapace",
@@ -486,7 +449,6 @@
     "type": "DEV",
     "trigram": "PPK",
     "proStart": 2018,
-    "isAnimator": false,
     "mainProject": "Project 1",
     "latestGroups": [
       "Carapace",
@@ -499,7 +461,6 @@
     "type": "DEV",
     "trigram": "PMR",
     "proStart": 2013,
-    "isAnimator": false,
     "mainProject": "Project 3",
     "latestGroups": [
       "Étoile",
@@ -512,7 +473,6 @@
     "type": "DEV",
     "trigram": "QPL",
     "proStart": 2013,
-    "isAnimator": false,
     "mainProject": "Project 4",
     "latestGroups": [
       "Étoile",
@@ -525,7 +485,6 @@
     "type": "DEV",
     "trigram": "RRE",
     "proStart": 2022,
-    "isAnimator": true,
     "mainProject": "Project 4",
     "latestGroups": [
       "Carapace",
@@ -538,7 +497,6 @@
     "type": "DEV",
     "trigram": "SWI",
     "proStart": 2020,
-    "isAnimator": false,
     "mainProject": "Project 10",
     "latestGroups": [
       "Étoile",
@@ -551,7 +509,6 @@
     "type": "DEV",
     "trigram": "SWH",
     "proStart": 2017,
-    "isAnimator": false,
     "mainProject": "Project 7",
     "latestGroups": [
       "Carapace",
@@ -564,7 +521,6 @@
     "type": "DEV",
     "trigram": "SSN",
     "proStart": 2013,
-    "isAnimator": false,
     "mainProject": "Project 6",
     "latestGroups": [
       "Étoile",
@@ -577,7 +533,6 @@
     "type": "DEV",
     "trigram": "SHK",
     "proStart": 2019,
-    "isAnimator": false,
     "mainProject": "Project 5",
     "latestGroups": [
       "Champignon",
@@ -590,7 +545,6 @@
     "type": "DEV",
     "trigram": "SSR",
     "proStart": 2014,
-    "isAnimator": false,
     "mainProject": "Project 8",
     "latestGroups": [
       "Étoile",
@@ -603,7 +557,6 @@
     "type": "DEV",
     "trigram": "SWR",
     "proStart": 2012,
-    "isAnimator": false,
     "mainProject": "Project 2",
     "latestGroups": [
       "Fleur",
@@ -616,7 +569,6 @@
     "type": "DEV",
     "trigram": "SSM",
     "proStart": 2017,
-    "isAnimator": false,
     "mainProject": "Project 1",
     "latestGroups": [
       "Champignon",
@@ -629,7 +581,6 @@
     "type": "DEV",
     "trigram": "TAN",
     "proStart": 2014,
-    "isAnimator": false,
     "mainProject": "Project 1",
     "latestGroups": [
       "Champignon",
@@ -642,7 +593,6 @@
     "type": "DEV",
     "trigram": "TTS",
     "proStart": 2016,
-    "isAnimator": false,
     "mainProject": "Project 5",
     "latestGroups": [
       "Carapace",
@@ -655,7 +605,6 @@
     "type": "DEV",
     "trigram": "TTR",
     "proStart": 2019,
-    "isAnimator": true,
     "mainProject": "Project 9",
     "latestGroups": [
       "Champignon",
@@ -668,7 +617,6 @@
     "type": "DEV",
     "trigram": "UWR",
     "proStart": 2017,
-    "isAnimator": false,
     "mainProject": "Project 1",
     "latestGroups": [
       "Champignon",
@@ -681,7 +629,6 @@
     "type": "DEV",
     "trigram": "VVN",
     "proStart": 2017,
-    "isAnimator": false,
     "mainProject": "Project 5",
     "latestGroups": [
       "Carapace",
@@ -694,7 +641,6 @@
     "type": "DEV",
     "trigram": "WWP",
     "proStart": 2018,
-    "isAnimator": false,
     "mainProject": "Project 7",
     "latestGroups": [
       "Fleur",
@@ -707,7 +653,6 @@
     "type": "DEV",
     "trigram": "WWE",
     "proStart": 2015,
-    "isAnimator": false,
     "mainProject": "Project 9",
     "latestGroups": [
       "Fleur",

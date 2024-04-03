@@ -2,19 +2,30 @@
 declare type CommunityMember = {
     lastName: string,
     firstName: string,
-    type: string,
+    type: "DEV"|"TECHLEAD",
     trigram: string,
     proStart: number,
-    isAnimator: boolean,
     mainProject: string,
     latestGroups: string[]
 }
 declare type CommunityGroup = {
     name: string,
     devsCount: number,
-    techleadsCount: number
+    techleadsCount: number,
+    animator?: string|null
 }
-declare type CommunityDescriptor = {
+declare type RawTrackDescriptor = {
+  name: string,
+  subscribers: string,
+  alsoIncludeUnsubscribedMembers?: boolean,
+  groups: Array<CommunityGroup>
+}
+declare type TrackDescriptor = {
+  name: string,
+  subscribers: Array<CommunityMember>,
+  groups: Array<CommunityGroup>
+}
+declare type RawCommunityDescriptor = {
     referenceYearForSeniority: number,
     xpWeight: number,
     // If set to 3, it means that within the group, we won't be able
@@ -25,7 +36,10 @@ declare type CommunityDescriptor = {
     // different groups
     maxMembersPerGroupWithDuplicatedProject: number,
     malusPerSamePath: number,
-    groups: Array<CommunityGroup>
+    tracks: Array<RawTrackDescriptor>,
+}
+declare type CommunityDescriptor = Omit<RawCommunityDescriptor, "tracks"> & {
+  tracks: Array<TrackDescriptor>
 }
 
 declare type CommunityMemberWithAssignedGroupName = CommunityMember & {group: string};
@@ -53,6 +67,11 @@ declare type ResultDetailedScore = {
     groupsScores: GroupScore[]
 }
 declare type Result = {
+  communityDescriptor: Omit<CommunityDescriptor, "tracks">,
+  trackResults: TrackResult[],
+}
+declare type TrackResult = {
+    track: TrackDescriptor,
     score: ResultDetailedScore,
-    devs: CommunityMemberWithAssignedGroupName[]
+    members: CommunityMemberWithAssignedGroupName[]
 }

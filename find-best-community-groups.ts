@@ -6,20 +6,39 @@ import playerFactory from 'play-sound'
 
 const player = playerFactory({});
 
-const BEST_RESULT_FILE = './best-result.json'
+const COMMUNITY_DESCRIPTOR_INPUT_FILE = './community-descriptor.json'
+const MEMBERS_INPUT_FILE = './members.json'
+const BEST_RESULT_OUTPUT_FILE = './best-result.json'
 
-function loadBestResultFile(): CommunityMemberWithAssignedGroupName[]|undefined {
-    try { return require(BEST_RESULT_FILE).devs; }
-    catch(e) { return undefined; }
+const args = process.argv.slice(2);
+
+if(args.length !== 1) {
+  throw new Error(`Usage: npm run find-best-community-groups <trackName>`)
+}
+const trackName = args[0];
+
+console.info(`args: ${JSON.stringify(args)}`)
+
+function loadBestResultFromFile(): Result|undefined {
+  try {
+    const result: Result = require(BEST_RESULT_OUTPUT_FILE);
+    return result;
+  } catch(e) { return undefined; }
+}
+function loadBestTrackResultFromFile(track: TrackDescriptor): TrackResult|undefined {
+  const result: Result = loadBestResultFromFile();
+  if(!result) {
+    return undefined;
+  }
+
+  return result.trackResults.find(tr => tr.track.name === track.name);
 }
 
 type ShuffleResult = {footprint: string, assignedMembers: CommunityMemberWithAssignedGroupName[] };
-class GroupMemberShuffler {
-    private readonly animators: CommunityMember[];
+class TrackMemberShuffler {
     private readonly devs: CommunityMember[];
     private readonly techleads: CommunityMember[];
 
-    private readonly animatorHashes: number[];
     private readonly devIndexes: number[];
     private readonly devHashes: number[];
     private readonly techleadIndexes: number[];
@@ -28,18 +47,13 @@ class GroupMemberShuffler {
     private readonly perProjectDevs = new Map<string, CommunityMember[]>();
     private readonly perProjectTechleads = new Map<string, CommunityMember[]>();
 
-    constructor(members: CommunityMember[], readonly groups: CommunityGroup[]) {
-        this.animators = members.filter(m => m.isAnimator);
-        if(this.animators.length !== groups.length) {
-            throw new Error(`Number of animators ${this.animators.length} is different than the groups' size (${groups.length})`)
-        }
+    constructor(readonly track: TrackDescriptor) {
+        this.devs = this.track.subscribers.filter(m => m.type === 'DEV');
+        this.techleads = this.track.subscribers.filter(m => m.type === 'TECHLEAD');
 
-        this.devs = members.filter(m => !m.isAnimator && m.type === 'DEV');
-        this.techleads = members.filter(m => !m.isAnimator && m.type === 'TECHLEAD');
-
-        const typeIndexes = Array.from(new Set(members.map(m => m.type)))
-        const projectIndexes = Array.from(new Set(members.map(m => m.mainProject)))
-        const yearsIndexes = Array.from(new Set(members.map(m => m.proStart)))
+        const typeIndexes = Array.from(new Set(this.track.subscribers.map(m => m.type)))
+        const projectIndexes = Array.from(new Set(this.track.subscribers.map(m => m.mainProject)))
+        const yearsIndexes = Array.from(new Set(this.track.subscribers.map(m => m.proStart)))
 
         const indexExtractor = (_, idx) => idx,
             hashExtractor = (m: CommunityMember) => {
@@ -48,15 +62,14 @@ class GroupMemberShuffler {
                     | typeIndexes.indexOf(m.type);
             };
 
-        this.animatorHashes = this.animators.map(hashExtractor);
         this.devIndexes = this.devs.map(indexExtractor);
         this.devHashes = this.devs.map(hashExtractor);
         this.techleadIndexes = this.techleads.map(indexExtractor);
         this.techleadHashes = this.techleads.map(hashExtractor);
 
         projectIndexes.forEach(project => {
-            this.perProjectDevs.set(project, members.filter(m => m.type === 'DEV' && m.mainProject === project))
-            this.perProjectTechleads.set(project, members.filter(m => m.type === 'TECHLEAD' && m.mainProject === project))
+            this.perProjectDevs.set(project, this.track.subscribers.filter(m => m.type === 'DEV' && m.mainProject === project))
+            this.perProjectTechleads.set(project, this.track.subscribers.filter(m => m.type === 'TECHLEAD' && m.mainProject === project))
         })
     }
 
@@ -70,29 +83,42 @@ class GroupMemberShuffler {
         const shuffledDevIndexes: typeof this.devIndexes = fisherYatesShuffle(this.devIndexes.slice(0)),
               shuffledTechleadIndexes: typeof this.techleadIndexes = fisherYatesShuffle(this.techleadIndexes.slice(0));
 
-        const { assignedMembers, footprintChunks } = this.groups.reduce((result, group, groupIdx) => {
+        const { assignedMembers, footprintChunks } = this.track.groups.reduce((result, group, groupIdx) => {
             const groupPerProjectMembers = {};
             const groupFootprintChunks = [];
 
-            const animator = this.animators[groupIdx];
-            result.assignedMembers.push({
+            let animatorType: CommunityMember['type'] | "NONE";
+            if(group.animator) {
+              const animator = this.track.subscribers.find(sub => sub.trigram === group.animator);
+              result.assignedMembers.push({
                 lastName: animator.lastName,
                 firstName: animator.firstName,
                 type: animator.type,
                 trigram: animator.trigram,
                 proStart: animator.proStart,
-                isAnimator: true,
                 mainProject: animator.mainProject,
                 latestGroups: animator.latestGroups,
                 group: group.name
-            })
-            groupFootprintChunks.push(this.animatorHashes[groupIdx])
+              })
 
-            const animatorProjectMembers = (animator.type==='DEV'?perProjectDevs:perProjectTechleads).get(animator.mainProject)
-            animatorProjectMembers.splice(animatorProjectMembers.findIndex(m => m.lastName === animator.lastName && m.firstName === animator.firstName), 1);
-            groupPerProjectMembers[animator.mainProject] = [ animator ];
+              const animatorProjectMembers = (animator.type==='DEV'?perProjectDevs:perProjectTechleads).get(animator.mainProject)
+              animatorProjectMembers.splice(animatorProjectMembers.findIndex(m => m.trigram === animator.trigram), 1);
+              groupPerProjectMembers[animator.mainProject] = [ animator ];
 
-            for(let i=0; i<group.techleadsCount - (animator.type === 'TECHLEAD'?1:0); i++) {
+              if(animator.type === 'DEV') {
+                const animatorDevIndex = this.devs.findIndex(member => member.trigram === animator.trigram);
+                shuffledDevIndexes.splice(shuffledDevIndexes.findIndex(idx => idx === animatorDevIndex), 1)
+              } else if(animator.type === 'TECHLEAD') {
+                const animatorTLIndex = this.techleads.findIndex(member => member.trigram === animator.trigram);
+                shuffledTechleadIndexes.splice(shuffledTechleadIndexes.findIndex(idx => idx === animatorTLIndex), 1)
+              }
+
+              animatorType = animator.type;
+            } else {
+              animatorType = 'NONE';
+            }
+
+            for(let i=0; i<group.techleadsCount - (animatorType === 'TECHLEAD'?1:0); i++) {
                 const tcIndex = shuffledTechleadIndexes.shift();
                 const techlead = this.techleads[tcIndex];
                 result.assignedMembers.push({
@@ -101,7 +127,6 @@ class GroupMemberShuffler {
                     type: 'TECHLEAD',
                     trigram: techlead.trigram,
                     proStart: techlead.proStart,
-                    isAnimator: false,
                     mainProject: techlead.mainProject,
                     latestGroups: techlead.latestGroups,
                     group: group.name
@@ -109,7 +134,7 @@ class GroupMemberShuffler {
                 groupFootprintChunks.push(this.techleadHashes[tcIndex])
             }
 
-            for(let i=0; i<group.devsCount - (animator.type === 'DEV'?1:0); i++) {
+            for(let i=0; i<group.devsCount - (animatorType === 'DEV'?1:0); i++) {
                 const devIndex = shuffledDevIndexes.shift();
                 const dev = this.devs[devIndex];
                 result.assignedMembers.push({
@@ -118,7 +143,6 @@ class GroupMemberShuffler {
                     type: 'DEV',
                     trigram: dev.trigram,
                     proStart: dev.proStart,
-                    isAnimator: false,
                     mainProject: dev.mainProject,
                     latestGroups: dev.latestGroups,
                     group: group.name
@@ -137,19 +161,22 @@ class GroupMemberShuffler {
     }
 }
 
-async function bestShuffleFor({groups, referenceYearForSeniority, xpWeight, maxSameProjectPerGroup, maxMembersPerGroupWithDuplicatedProject, malusPerSamePath}: CommunityDescriptor, members: Array<CommunityMember>): Promise<Result> {
-    let bestResult: Result = {devs: [], score: {score: Infinity, groupsScores:[], duplicatedPathsMalus: 0, duplicatedPaths: [], xpStdDev: 0}};
+async function bestShuffleFor(communityDescriptor: CommunityDescriptor, track: TrackDescriptor): Promise<TrackResult> {
+    let bestResult: TrackResult = {track, members: [], score: {score: Infinity, groupsScores:[], duplicatedPathsMalus: 0, duplicatedPaths: [], xpStdDev: 0}};
 
-    const INITIAL_MEMBERS_RESULT = loadBestResultFile();
+    const { subscribers: members, groups } = track;
 
-    if(INITIAL_MEMBERS_RESULT) {
+    const INITIAL_RESULT = loadBestTrackResultFromFile(track);
+
+    const initialMembers = INITIAL_RESULT?.members;
+    if(initialMembers) {
         const devIdentity = (m: CommunityMember) =>
-            `${m.type}_${m.trigram}_${m.mainProject}_${m.isAnimator}_${m.proStart}`
+            `${m.type}_${m.trigram}_${m.mainProject}_${m.proStart}`
 
-        let initialHash = INITIAL_MEMBERS_RESULT.map(devIdentity).sort();
+        let initialHash = initialMembers.map(devIdentity).sort();
         let actualHash = members.map(devIdentity).sort();
         if(initialHash.join(",") !== actualHash.join(",")) {
-            console.error(`It seems like there is a remaining ${BEST_RESULT_FILE} file (not matching actual members descriptor): shouldn't you delete it ?`)
+            console.error(`It seems like there is a remaining ${BEST_RESULT_OUTPUT_FILE} file (not matching actual members descriptor): shouldn't you delete it ?`)
             console.info(``)
             console.info(`Actual members descriptor: ${JSON.stringify(actualHash)}`)
             console.info(`Expected members descriptor: ${JSON.stringify(initialHash)}`)
@@ -157,7 +184,7 @@ async function bestShuffleFor({groups, referenceYearForSeniority, xpWeight, maxS
         }
     }
 
-    const shuffler = new GroupMemberShuffler(members, groups);
+    const shuffler = new TrackMemberShuffler(track);
 
     let lastIndex = 0, lastTS = Date.now(), idx = 0, attemptsMatchingConstraints = 0, lastAttemptsMatchingConstraints = 0;
     let shuffResult: ShuffleResult;
@@ -165,25 +192,25 @@ async function bestShuffleFor({groups, referenceYearForSeniority, xpWeight, maxS
     while(shuffResult = shuffler.shuffle()) {
         const {assignedMembers, footprint} = shuffResult;
 
-        if(INITIAL_MEMBERS_RESULT && idx===0) {
+        if(initialMembers && idx===0) {
             assignedMembers.length = 0;
             Array.prototype.push.apply(assignedMembers, members.map(m => {
-                const initialMember = INITIAL_MEMBERS_RESULT.find(m => m.firstName === m.firstName && m.lastName === m.lastName)
+                const initialMember = initialMembers.find(initialMember => initialMember.trigram === m.trigram)
                 return ({...m, group: initialMember.group });
             }))
         }
 
         // if(!alreadyProcessedFootprints.has(footprint)) {
         //     alreadyProcessedFootprints.add(footprint);
-            if(shuffledDevsMatchesConstraint(assignedMembers, groups, maxSameProjectPerGroup, maxMembersPerGroupWithDuplicatedProject)) {
+            if(shuffledDevsMatchesConstraint(assignedMembers, groups, communityDescriptor.maxSameProjectPerGroup, communityDescriptor.maxMembersPerGroupWithDuplicatedProject)) {
                 attemptsMatchingConstraints++;
 
-                const score = scoreOf(assignedMembers, groups, referenceYearForSeniority, xpWeight, malusPerSamePath);
-                const result: Result = { score, devs: assignedMembers };
+                const score = scoreOf(assignedMembers, groups, communityDescriptor.referenceYearForSeniority, communityDescriptor.xpWeight, communityDescriptor.malusPerSamePath);
+                const result: TrackResult = { track, score, members: assignedMembers };
                 if(bestResult.score.score > score.score) {
                     bestResult = result;
                     console.log(`[${idx}] Found new matching result with score of ${bestResult.score.score} !`)
-                    onResultFound(bestResult, referenceYearForSeniority);
+                    onTrackResultFound(bestResult, communityDescriptor);
                 } else {
                     // console.log(`[${idx}] Found new matching result, but not beating actual score...`)
                 }
@@ -208,44 +235,54 @@ async function bestShuffleFor({groups, referenceYearForSeniority, xpWeight, maxS
 }
 
 
-async function shuffleGroupsFor(communityDescriptor: CommunityDescriptor, members: Array<CommunityMember>) {
-    const result = await bestShuffleFor(communityDescriptor, members);
+async function shuffleGroupsFor(communityDescriptor: CommunityDescriptor, trackDescriptor: TrackDescriptor) {
+    const result = await bestShuffleFor(communityDescriptor, trackDescriptor);
     if(!result) {
         return ["Nothing found matching constraints !"];
     }
 
-    onResultFound(result, communityDescriptor.referenceYearForSeniority);
+    onTrackResultFound(result, communityDescriptor);
 }
 
-function onResultFound(result: Result, referenceYearForSeniority: number) {
-    fs.writeFileSync(BEST_RESULT_FILE, JSON.stringify(result, null, '  '));
+function onTrackResultFound(trackResult: TrackResult, communityDescriptor: CommunityDescriptor) {
+    const result: Result = loadBestResultFromFile() || {trackResults: [], communityDescriptor}
+
+    const trackResultIndex = result.trackResults.findIndex(tr => tr.track.name === trackResult.track.name);
+    if(trackResultIndex === -1) {
+      result.trackResults.push(trackResult);
+    } else {
+      result.trackResults[trackResultIndex] = trackResult;
+    }
+
+    fs.writeFileSync(BEST_RESULT_OUTPUT_FILE, JSON.stringify(result, null, '  '));
 
     console.log(`Group assignments:`)
-    result.score.groupsScores.forEach((groupScore, idx) => {
-        const groupMembers = result.devs.filter(member => member.group === groupScore.name)
+    trackResult.score.groupsScores.forEach((groupScore, idx) => {
+        const group = trackResult.track.groups.find(g => g.name === groupScore.name);
+        const groupMembers = trackResult.members.filter(member => member.group === groupScore.name)
         console.log(`[${groupScore.name}] - avg_xp(dev)=${groupScore.groupAverageXP}, tot_xp(dev)=${groupScore.groupTotalXP}, count(dev)=${groupMembers.filter(m => m.type==='DEV').length}, count(tl)=${groupMembers.filter(m => m.type==='TECHLEAD').length}`)
         console.log(groupMembers
-            .map(member => `${member.isAnimator?'*':''}${member.firstName} ${member.lastName}${member.isAnimator?'*':''} (XP=${xpOf(member, referenceYearForSeniority)}, ${member.mainProject})`)
+            .map(member => `${member.trigram === group.animator?'*':''}${member.firstName} ${member.lastName}${member.trigram === group.animator?'*':''} (XP=${xpOf(member, communityDescriptor.referenceYearForSeniority)}, ${member.mainProject})`)
             .join(", "))
         console.log(``);
     })
 
-    console.log(`Global score: ${result.score.score}`)
-    console.log(`Standard deviation on groups' avg_xp(dev) : ${result.score.xpStdDev}`)
-    console.log(`Duplicated paths malus : ${result.score.duplicatedPathsMalus}`)
-    if(result.score.duplicatedPaths.length) {
-        console.log(`Detailed duplicated paths : ${JSON.stringify(result.score.duplicatedPaths)}`)
+    console.log(`Global score: ${trackResult.score.score}`)
+    console.log(`Standard deviation on groups' avg_xp(dev) : ${trackResult.score.xpStdDev}`)
+    console.log(`Duplicated paths malus : ${trackResult.score.duplicatedPathsMalus}`)
+    if(trackResult.score.duplicatedPaths.length) {
+        console.log(`Detailed duplicated paths : ${JSON.stringify(trackResult.score.duplicatedPaths)}`)
     }
     console.log('')
 
-    result.score.groupsScores.forEach((groupScore, idx) => {
+    trackResult.score.groupsScores.forEach((groupScore, idx) => {
         console.log(`${groupScore.name} same projects #: tot=${groupScore.sameProjectsCounts}`)
     })
 
     console.log('')
 
     console.log("members (to import in google spreadsheet, through Actions > Import fill-groups JSON menu): ")
-    console.log(JSON.stringify(result.devs))
+    console.log(JSON.stringify(trackResult.members))
 
     // Trying to play the sound ... and if it fails, never mind !
     try { player.play('mixkit-gaming-lock-2848.wav') }catch(e) {}
@@ -310,6 +347,11 @@ function scoreOf(devs: CommunityMemberWithAssignedGroupName[], groups: Community
 }
 
 function shuffledDevsMatchesConstraint(devs: CommunityMemberWithAssignedGroupName[], groups: CommunityGroup[], maxSameProjectPerGroup: number, maxMembersPerGroupWithDuplicatedProject: number): boolean {
+    // When we only have 1 group, we shouldn't try to look for permutations because we have no choices...
+    if(groups.length === 1) {
+      return true;
+    }
+
     for(const group of groups) {
       const devsInGroup = devs.filter(d => d.group === group.name);
       const projects = devsInGroup
@@ -336,11 +378,108 @@ function shuffledDevsMatchesConstraint(devs: CommunityMemberWithAssignedGroupNam
     return true;
 }
 
-async function main() {
-    const communityDescriptor: CommunityDescriptor = require('./community-descriptor.json');
-    const members: Array<CommunityMember> = require('./members.json');
-    const results = await shuffleGroupsFor(communityDescriptor, members);
+function ensureValidCommunityDescriptor(members: Array<CommunityMember>, rawCommunityDescriptor: RawCommunityDescriptor): CommunityDescriptor {
+  const membersIndexedByTrigram = Array.from(members.reduce((trigramsCounts, member) => {
+    trigramsCounts.set(member.trigram, (trigramsCounts.get(member.trigram) || []).concat(member));
+    return trigramsCounts;
+  }, new Map<string, Array<CommunityMember>>()).entries())
+
+  const duplicatedTrigrams = membersIndexedByTrigram.filter(([trigram, members]) => members.length > 1)
+  if(duplicatedTrigrams.length) {
+    throw new Error(`Duplicated trigram detected: ${duplicatedTrigrams.map(([trigram, members]) => `${trigram} (${members.map(m => `${m.firstName} ${m.lastName}`).join(", ")})`).join(", ")}`)
+  }
+
+  const tracksIncludingUnsubscribedMembers = rawCommunityDescriptor.tracks.filter(t => t.alsoIncludeUnsubscribedMembers);
+  if(tracksIncludingUnsubscribedMembers.length > 1) {
+    throw new Error(`More than 1 Track has [alsoIncludeUnsubscribedMembers] flag to true: ${tracksIncludingUnsubscribedMembers.map(t => t.name).join(", ")}`)
+  }
+
+  const tracksNotIncludingUnsubscribedMembers = rawCommunityDescriptor.tracks.filter(t => !t.alsoIncludeUnsubscribedMembers);
+
+  let trigramsNotAlreadyReferencedInTracks = membersIndexedByTrigram.map(([trigram, members]) => trigram);
+  const unknownTrigrams: Array<{ scope: string, trigram: string }> = []
+  const communityDescriptor: CommunityDescriptor = {
+    ...rawCommunityDescriptor,
+    // Ending list of track by the ones including unsubscribed members, so that we can calculate remaining members
+    // not assigned to other tracks
+    tracks: tracksNotIncludingUnsubscribedMembers.concat(tracksIncludingUnsubscribedMembers).map(track => {
+      const subscriberTrigrams = track.alsoIncludeUnsubscribedMembers
+        ? trigramsNotAlreadyReferencedInTracks
+        : track.subscribers.split(/[\t\s]/gi);
+
+      track.groups.forEach(group => {
+        if(group.animator && !subscriberTrigrams.includes(group.animator)) {
+          unknownTrigrams.push({ scope: `${track.name}->${group.name}->animator`, trigram: group.animator })
+        }
+      })
+
+      trigramsNotAlreadyReferencedInTracks = trigramsNotAlreadyReferencedInTracks.filter(t => !subscriberTrigrams.includes(t))
+
+      return {
+        ...track,
+        subscribers: subscriberTrigrams.map(trigram => {
+          const member = members.find(m => m.trigram === trigram);
+          if(!member) {
+            unknownTrigrams.push({ scope: `${track.name}->subscribers`, trigram })
+          }
+          return member;
+        })
+      }
+    })
+  }
+
+  if(trigramsNotAlreadyReferencedInTracks.length) {
+    throw new Error(`Some trigrams have not been allocated to any tracks: ${trigramsNotAlreadyReferencedInTracks.join(", ")}`)
+  }
+  if(unknownTrigrams.length) {
+    throw new Error(`Unknown trigrams detected: ${unknownTrigrams.map(ut => `${ut.trigram} (in scope [${ut.scope}])`).join(", ")}`)
+  }
+
+  // Checking track group constraints
+  const tracksNotMatchingConstraints = communityDescriptor.tracks.reduce((tracksNotMatchingConstraints, track) => {
+    const expectedDevs = track.groups.reduce((total, group) => total + group.devsCount, 0);
+    const expectedTechleads = track.groups.reduce((total, group) => total + group.techleadsCount, 0);
+
+    const trackDevs = track.subscribers.filter(member => member.type === 'DEV')
+    const trackTechleads = track.subscribers.filter(member => member.type === 'TECHLEAD')
+
+    if(expectedDevs !== trackDevs.length || expectedTechleads !== trackTechleads.length) {
+      tracksNotMatchingConstraints.push({
+        trackName: track.name,
+        expectations: { devsCount: expectedDevs, techleadsCount: expectedTechleads },
+        actual: { devsCount: trackDevs.length, techleadsCount: trackTechleads.length }
+      })
+    }
+
+    return tracksNotMatchingConstraints;
+  }, [] as Array<{
+    trackName: string,
+    expectations: {devsCount: number, techleadsCount: number },
+    actual: {devsCount: number, techleadsCount: number },
+  }>)
+
+  if(tracksNotMatchingConstraints.length) {
+    throw new Error(`Found some track groups size inconsistencies: \n${tracksNotMatchingConstraints.map(tnmc =>
+      `- ${tnmc.trackName}: ${JSON.stringify({ expectations: tnmc.expectations, actual: tnmc.actual })}`
+    ).join("\n")}`)
+  }
+
+  return communityDescriptor;
+}
+
+async function main(trackName: string) {
+    const rawCommunityDescriptor: RawCommunityDescriptor = require(COMMUNITY_DESCRIPTOR_INPUT_FILE);
+    const members: Array<CommunityMember> = require(MEMBERS_INPUT_FILE);
+
+    const communityDescriptor = ensureValidCommunityDescriptor(members, rawCommunityDescriptor);
+
+    const track = communityDescriptor.tracks.find(t => t.name.toLowerCase() === trackName.toLowerCase());
+    if(!track) {
+      throw new Error(`No track found matching name: ${trackName} (available tracks: ${communityDescriptor.tracks.map(t => t.name).join(", ")})`)
+    }
+
+    const results = await shuffleGroupsFor(communityDescriptor, track);
     console.log(results);
 }
 
-main()
+main(trackName)

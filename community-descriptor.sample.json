@@ -1,39 +1,42 @@
 {
-  "referenceYearForSeniority": 2023,
+  "referenceYearForSeniority": 2024,
   "xpWeight": 1.5,
   "maxSameProjectPerGroup": 2,
   "maxMembersPerGroupWithDuplicatedProject": 3,
   "malusPerSamePath": 0.1,
-  "groups": [
+  "tracks": [
     {
-      "name": "Champignon",
-      "devsCount": 7,
-      "techleadsCount": 2
-    },
-    {
-      "name": "Carapace",
-      "devsCount": 7,
-      "techleadsCount": 2
-    },
-    {
-      "name": "Fleur",
-      "devsCount": 7,
-      "techleadsCount": 2
-    },
-    {
-      "name": "Banane",
-      "devsCount": 7,
-      "techleadsCount": 2
-    },
-    {
-      "name": "Étoile",
-      "devsCount": 7,
-      "techleadsCount": 1
-    },
-    {
-      "name": "Feuille",
-      "devsCount": 8,
-      "techleadsCount": 1
+      "name": "Sessions libres",
+      "subscribers": "AWK\tAAA\tAAS\tHHK",
+      "alsoIncludeUnsubscribedMembers": true,
+      "groups": [
+        { "name": "Champignon", "devsCount": 7, "techleadsCount": 2, "animator": null },
+        { "name": "Carapace", "devsCount": 7, "techleadsCount": 2, "animator": null },
+        { "name": "Fleur", "devsCount": 7, "techleadsCount": 2, "animator": null },
+        { "name": "Banane", "devsCount": 7, "techleadsCount": 2, "animator": null }
+      ]
+    }, {
+      "name": "Fil rouge: Sujet 1",
+      "subscribers": "BLK\tCCO\tCAA\tGGS\tHHK\tHHS",
+      "alsoIncludeUnsubscribedMembers": false,
+      "groups": [
+        { "name": "Sujet 1", "devsCount": 7, "techleadsCount": 2, "animator": null }
+      ]
+    }, {
+      "name": "Focus sur: Sujet 2",
+      "subscribers": "AFT\tBBT\tCOS\tDDH\tDIK\tDSE\tGGN",
+      "alsoIncludeUnsubscribedMembers": false,
+      "groups": [
+        { "name": "Sujet 2", "devsCount": 7, "techleadsCount": 2, "animator": "AFT" }
+      ]
+    }, {
+      "name": "Kata/Mob",
+      "subscribers": "AOE\tAAL\tCCA\tCYS\tDDL\tFFN\tFFR\tWWE\tWWP\tVVN\tUWR\tTTR",
+      "alsoIncludeUnsubscribedMembers": false,
+      "groups": [
+        { "name": "Kata 1", "devsCount": 7, "techleadsCount": 2, "animator": null },
+        { "name": "Kata 2", "devsCount": 7, "techleadsCount": 2, "animator": null }
+      ]
     }
   ]
 }
