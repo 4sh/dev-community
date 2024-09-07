@@ -34,7 +34,7 @@ console.info(`args: ${JSON.stringify(args)}`)
 
 function loadBestResultFromFile(): Result|undefined {
   try {
-    const result: Result = require(BEST_RESULT_OUTPUT_FILE);
+    const result: Result = JSON.parse(fs.readFileSync(BEST_RESULT_OUTPUT_FILE, "utf-8"));
     return result;
   } catch(e) { return undefined; }
 }
@@ -514,9 +514,19 @@ function ensureValidMembers(members: Array<CommunityMember>): Array<CommunityMem
   return members;
 }
 
+function readMembers() {
+  const rawMembers: CommunityMember[] = JSON.parse(fs.readFileSync(MEMBERS_FILE, 'utf-8'))
+  return ensureValidMembers(rawMembers)
+}
+
+function readCommunityDescriptor(communityMembers: CommunityMember[]) {
+  const rawCommunityDescriptor: RawCommunityDescriptor = JSON.parse(fs.readFileSync(COMMUNITY_DESCRIPTOR_INPUT_FILE, 'utf-8'))
+  return ensureValidCommunityDescriptor(communityMembers, rawCommunityDescriptor)
+}
+
 async function computeTrack(trackName: string) {
-    const members = ensureValidMembers(require(MEMBERS_FILE));
-    const communityDescriptor = ensureValidCommunityDescriptor(members, require(COMMUNITY_DESCRIPTOR_INPUT_FILE));
+    const members = readMembers();
+    const communityDescriptor = readCommunityDescriptor(members);
 
     const track = communityDescriptor.tracks.find(t => t.name.toLowerCase() === trackName.toLowerCase());
     if(!track) {
@@ -542,7 +552,7 @@ async function show() {
 }
 
 function recordMemberGroups() {
-    const members = ensureValidMembers(require(MEMBERS_FILE));
+    const members = readMembers();
     const results = loadBestResultFromFile();
 
     const nonProcessedTrigrams = members.map(m => m.trigram)
