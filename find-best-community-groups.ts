@@ -183,7 +183,7 @@ async function bestShuffleFor(communityDescriptor: CommunityDescriptor, track: T
 
     let lastIndex = 0, lastTS = Date.now(), idx = 0, attemptsMatchingConstraints = 0, lastAttemptsMatchingConstraints = 0;
     let shuffResult: ShuffleResult;
-    // const alreadyProcessedFootprints = new Set<string>();
+    const alreadyProcessedFootprints = new Set<string>();
     while(shuffResult = shuffler.shuffle()) {
         const {assignedMembers, footprint} = shuffResult;
 
@@ -195,8 +195,8 @@ async function bestShuffleFor(communityDescriptor: CommunityDescriptor, track: T
             }))
         }
 
-        // if(!alreadyProcessedFootprints.has(footprint)) {
-        //     alreadyProcessedFootprints.add(footprint);
+        if(!alreadyProcessedFootprints.has(footprint)) {
+            alreadyProcessedFootprints.add(footprint);
             if(shuffledDevsMatchesConstraint(assignedMembers, groups, communityDescriptor.maxSameProjectPerGroup, communityDescriptor.maxMembersPerGroupWithDuplicatedProject)) {
                 attemptsMatchingConstraints++;
 
@@ -210,9 +210,9 @@ async function bestShuffleFor(communityDescriptor: CommunityDescriptor, track: T
                     // console.log(`[${idx}] Found new matching result, but not beating actual score...`)
                 }
             }
-        // } else {
+        } else {
         //     console.log(`skipped (footprint already processed !)`)
-        // }
+        }
 
         idx++;
 
