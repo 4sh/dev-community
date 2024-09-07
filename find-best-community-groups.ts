@@ -246,6 +246,10 @@ function showTrackResult(trackResult: TrackResult, referenceYearForSeniority: nu
     const groupMembers = trackResult.members.filter(member => member.group === groupScore.name)
     console.log(`[${groupScore.name}] - avg_xp(dev)=${groupScore.groupAverageXP}, tot_xp(dev)=${groupScore.groupTotalXP}, count(dev)=${groupMembers.filter(m => m.type==='DEV').length}, count(tl)=${groupMembers.filter(m => m.type==='TECHLEAD').length}`)
     console.log(groupMembers
+      .map(member => `${member.trigram === group.animator?'*':''}${member.firstName} ${member.lastName}${member.trigram === group.animator?'*':''}`)
+      .join(", "))
+    console.log(`\nDetails:`)
+    console.log(groupMembers
       .map(member => `${member.trigram === group.animator?'*':''}${member.firstName} ${member.lastName}${member.trigram === group.animator?'*':''} (XP=${xpOf(member, referenceYearForSeniority)}, ${member.mainProject})`)
       .join(", "))
     console.log(``);
