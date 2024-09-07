@@ -30,6 +30,9 @@ Whenever a better score is found, a **sound** will be played, and the Track's gr
 into `best-result.json` file.
 
 Repeat this for every configured Tracks, so that you get a `best-result.json` file covering all these Tracks.
+To speed up things for tracks with single groups (such as "Focus" tracks), you can run `npm run find-best-community-groups compute-single-groups`
+which is going to run `compute` on each single-group tracks to have at least 1 execution (and a corresponding `best-result.json` entry
+for these tracks where shuffling is useless)
 
 ### Showing every Tracks' best results
 

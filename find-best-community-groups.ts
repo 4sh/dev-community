@@ -21,11 +21,15 @@ const params = match(args)
     command: 'compute',
     trackName: args[1]
   } as const))
+  .with(['compute-single-groups'], (args) => ({
+    command: 'compute-single-groups',
+  } as const))
   .with(['record-member-groups'], (args) => ({
     command: 'record-member-groups'
   } as const))
   .otherwise(() => { throw new Error(`Usage:
 - npm run find-best-community-groups compute <trackName>
+- npm run find-best-community-groups compute-single-groups
 - npm run find-best-community-groups show
 - npm run find-best-community-groups record-member-groups
     `); })
@@ -223,6 +227,11 @@ async function bestShuffleFor(communityDescriptor: CommunityDescriptor, track: T
 
             console.log(`[${new Date(currentTS).toISOString()}] [${idx}] ${currentTS-lastTS}ms elapsed => ${attempsPerSecond} attempts/sec, ${attempsMatchingConstraintsPerSecond} matching attempts/sec`)
             lastIndex = idx; lastTS = currentTS; lastAttemptsMatchingConstraints = attemptsMatchingConstraints;
+        }
+
+        if(track.groups.length === 1) {
+          // no need to infinitely look for better options when there is only 1 group for the track
+          break;
         }
     }
 
@@ -528,6 +537,18 @@ function readCommunityDescriptor(communityMembers: CommunityMember[]) {
   return ensureValidCommunityDescriptor(communityMembers, rawCommunityDescriptor)
 }
 
+async function computeSingleGroupTracks() {
+  const members = readMembers();
+  const communityDescriptor = readCommunityDescriptor(members);
+
+  const singleGroupTracks = communityDescriptor.tracks.filter(t => t.groups.length === 1);
+
+  for(const track of singleGroupTracks) {
+    const results = await shuffleGroupsFor(communityDescriptor, track);
+    console.log(results);
+  }
+}
+
 async function computeTrack(trackName: string) {
     const members = readMembers();
     const communityDescriptor = readCommunityDescriptor(members);
@@ -580,6 +601,7 @@ function recordMemberGroups() {
 
 match(params)
   .with({ command: 'compute'}, (params) => computeTrack(params.trackName))
+  .with({ command: 'compute-single-groups'}, (params) => computeSingleGroupTracks())
   .with({ command: 'show'}, (params) => show())
   .with({ command: 'record-member-groups'}, (params) => recordMemberGroups())
   .exhaustive();
