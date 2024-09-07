@@ -376,12 +376,12 @@ function shuffledDevsMatchesConstraint(devs: CommunityMemberWithAssignedGroupNam
     return true;
 }
 
-function trigramStrToArray(trigramsStr: string|null): string[] {
+function trigramStrToArray(trigramsStr: string|null|undefined): string[] {
   if(!trigramsStr) {
     return [];
   }
 
-  return trigramsStr.split(/[\t\s]/gi)
+  return trigramsStr.split(/[\t\s,]/gi).filter(val => !!val)
 }
 
 function resolveCommunityMembersFromTrigramsString(trigrams: string[], members: CommunityMember[], scope: string, unknownTrigrams: Array<{scope: string, trigram: string}>) {
@@ -426,7 +426,7 @@ ${absentTrigramsReferencedInTracks.map(atrit => `- ${atrit.absentTrigram} refere
 
   const unknownTrigrams: Array<{ scope: string, trigram: string }> = []
   const absentsFromThisCycle = resolveCommunityMembersFromTrigramsString(
-    trigramStrToArray(rawCommunityDescriptor.absentsFromThisCycle), members,
+    trigramStrToArray(rawCommunityDescriptor.absentsFromThisCycle?.trim()), members,
     `global->absentsFromThisCycle`, unknownTrigrams);
 
   let trigramsNotAlreadyReferencedInTracks = members
