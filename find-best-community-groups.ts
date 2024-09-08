@@ -465,6 +465,15 @@ ${absentTrigramsReferencedInTracks.map(atrit => `- ${atrit.absentTrigram} refere
       trigramsNotAlreadyReferencedInTracks = trigramsNotAlreadyReferencedInTracks.filter(t => !subscriberTrigrams.includes(t))
 
       const subscribers = resolveCommunityMembersFromTrigramsString(subscriberTrigrams, members, `${track.name}->subscribers`, unknownTrigrams);
+
+      // For tracks with only 1 group, no need to provide devsCount and techLeadsCount constraints
+      // as it will be auto-calculated
+      if(track.groups.length === 1) {
+        const uniqueTrackGroup = track.groups[0]
+        uniqueTrackGroup.devsCount = uniqueTrackGroup.devsCount || subscribers.filter(member => member.type === 'DEV').length
+        uniqueTrackGroup.techleadsCount = uniqueTrackGroup.techleadsCount || subscribers.filter(member => member.type === 'TECHLEAD').length
+      }
+
       return { ...track, subscribers }
     })
   }
